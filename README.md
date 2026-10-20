@@ -1,70 +1,57 @@
-# Getting Started with Create React App
+# Animae Search
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An anime discovery experience being rebuilt from an early React search
+prototype into a production-grade platform for finding, comparing, and
+understanding anime.
 
-## Available Scripts
+> **Status:** modernization planned. The current application is a 2021 proof of
+> concept and uses the retired Jikan v3 API. See [ROADMAP.md](./ROADMAP.md) for
+> the rebuild plan before attempting a production deployment.
 
-In the project directory, you can run:
+## Product direction
 
-### `npm start`
+The goal is to go beyond title lookup and create a decision tool for anime
+fans. Search and structured metadata will remain the foundation; contextual
+recommendations, explainable comparisons, and spoiler-aware AI assistance will
+make discovery substantially more useful.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Planned capabilities include:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- Fast search across titles, characters, studios, genres, seasons, and themes
+- Rich title pages with rankings, streaming availability, relations, and staff
+- Side-by-side comparisons and personal watchlists
+- Recommendations that explain why two titles are related
+- Natural-language discovery such as "short psychological anime without gore"
+- Spoiler-aware summaries and question answering grounded in trusted sources
+- Responsive, accessible UI with shareable filters and saved searches
 
-### `npm test`
+## Current prototype
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The existing code demonstrates React keyword search, Jikan API integration,
+result cards, loading states, and basic pagination. It is retained as historical
+context only. The rebuild will replace the legacy Create React App foundation
+and obsolete API contract.
 
-### `npm run build`
+## Rebuild principles
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **Search first:** excellent discovery must work without AI.
+2. **Grounded AI:** generated answers must cite the underlying catalog data.
+3. **No hidden spoilers:** spoiler level is an explicit user preference.
+4. **Measure quality:** relevance, latency, accessibility, and recommendation
+   quality require repeatable evaluation.
+5. **Production evidence:** tests, CI, observability, architecture decisions,
+   and a live deployment are part of the product.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Legacy setup
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The commands below run the historical prototype only:
 
-### `npm run eject`
+```bash
+npm install
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Next step
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Before writing the rebuild, we will decide the product scope, data providers,
+search architecture, AI model strategy, hosting, and evaluation approach.
