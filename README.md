@@ -4,9 +4,9 @@ An anime discovery experience being rebuilt from an early React search
 prototype into a production-grade platform for finding, comparing, and
 understanding anime.
 
-> **Status:** modernization planned. The current application is a 2021 proof of
-> concept and uses the retired Jikan v3 API. See [ROADMAP.md](./ROADMAP.md) for
-> the rebuild plan before attempting a production deployment.
+> **Status:** architecture approved and production rebuild starting. The current
+> application is a 2021 proof of concept and uses the retired Jikan v3 API. It
+> will be replaced rather than extended.
 
 ## Product direction
 
@@ -53,5 +53,8 @@ npm start
 
 ## Next step
 
-Before writing the rebuild, we will decide the product scope, data providers,
-search architecture, AI model strategy, hosting, and evaluation approach.
+Implementation begins with the P0 foundation in
+[docs/MVP_BACKLOG.md](./docs/MVP_BACKLOG.md). Read
+[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the chosen React, Django,
+PostgreSQL, Redis, Kafka, AI, AWS, Docker, and Jenkins design, and
+[docs/LEARNING_GUIDE.md](./docs/LEARNING_GUIDE.md) for how the pieces connect.

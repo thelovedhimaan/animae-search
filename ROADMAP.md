@@ -1,7 +1,8 @@
 # Animae Search Rebuild Roadmap
 
-This roadmap defines outcomes and decision gates. It intentionally does not
-select implementation tools yet.
+This roadmap defines outcomes and decision gates. Architecture decisions are
+recorded in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md), and delivery work is
+prioritized in [docs/MVP_BACKLOG.md](./docs/MVP_BACKLOG.md).
 
 ## Phase 0 - Product and architecture decisions
 
@@ -12,8 +13,11 @@ select implementation tools yet.
 - Choose the frontend, API, search, database, AI, and deployment stack
 - Define success metrics and an evaluation dataset
 
-**Exit condition:** an approved architecture decision record and prioritized
-MVP backlog.
+**Status:** complete. The product boundary, data strategy, stack, Jenkins/AWS
+delivery model, success metrics, and prioritized backlog are documented.
+
+**Exit condition:** architecture decisions remain reviewable as requirements
+and provider constraints change.
 
 ## Phase 1 - Reliable discovery foundation
 
