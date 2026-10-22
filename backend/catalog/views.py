@@ -1,0 +1,62 @@
+from django.db import connections
+from django.db.utils import OperationalError
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .providers.anilist import ProviderUnavailable
+from .services import discovery_home, search_titles, title_detail
+
+
+class HealthView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            connections["default"].cursor().execute("SELECT 1")
+            database = "ok"
+        except OperationalError:
+            database = "unavailable"
+        code = status.HTTP_200_OK if database == "ok" else status.HTTP_503_SERVICE_UNAVAILABLE
+        return Response({"status": "ok" if database == "ok" else "degraded", "database": database}, status=code)
+
+
+class DiscoveryView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            return Response(discovery_home())
+        except ProviderUnavailable as exc:
+            return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
+
+
+class SearchView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        term = request.query_params.get("q", "").strip()
+        if len(term) < 2:
+            return Response({"detail": "Use at least two characters."}, status=400)
+        try:
+            page = max(1, int(request.query_params.get("page", "1")))
+        except ValueError:
+            return Response({"detail": "Page must be a number."}, status=400)
+        try:
+            return Response(search_titles(term, page))
+        except ProviderUnavailable as exc:
+            return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
+
+
+class DetailView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, media_id: int):
+        try:
+            return Response(title_detail(media_id))
+        except ProviderUnavailable as exc:
+            return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)

@@ -2,6 +2,14 @@
 
 # dependencies
 /node_modules
+/web/node_modules
+/web/.next
+/web/*.tsbuildinfo
+/backend/.venv
+/backend/__pycache__
+/backend/db.sqlite3
+**/__pycache__/
+*.py[cod]
 /.pnp
 .pnp.js
 
@@ -14,6 +22,7 @@
 # misc
 .DS_Store
 .env.local
+.env
 .env.development.local
 .env.test.local
 .env.production.local

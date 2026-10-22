@@ -2,7 +2,7 @@
 
 ## Required Jenkins capabilities
 
-Use a Linux Jenkins agent with Docker, Node.js 20, AWS CLI v2, `jq`, and `curl`. Install the Pipeline, Git, Credentials Binding, AWS Credentials, JUnit, and Docker Pipeline plugins. The agent needs enough disk space for immutable container builds and must not expose the Docker socket to untrusted public jobs.
+Use a Linux Jenkins agent with Docker, AWS CLI v2, `jq`, and `curl`. Node.js 22.13 or newer is useful for local troubleshooting, while the pipeline itself builds with pinned container images. Install the Pipeline, Git, Credentials Binding, AWS Credentials, and Docker Pipeline plugins. The agent needs enough disk space for immutable container builds and must not expose the Docker socket to untrusted public jobs.
 
 Create a GitHub multibranch Pipeline pointing at this repository. Jenkins discovers the root `Jenkinsfile`, runs every branch, and exposes deployment parameters for authorized users.
 
@@ -30,21 +30,21 @@ The deployment script expects:
 - clusters `anime-search-staging` and `anime-search-production`;
 - services `anime-search-web-staging` and `anime-search-web-production`;
 - task-definition families with the same service names;
-- a container named `web` inside each task definition.
+- containers named `web` and `api` inside each task definition.
 
-The pipeline builds once and tags the image with the exact Git commit. Staging and production receive the same image. The deployment script clones the current task definition, changes only the `web` container image, registers a new revision, updates the service, and waits for ECS stability.
+The pipeline builds each service once and tags both images with the exact Git commit. Staging and production receive the same artifacts. The deployment script clones the current task definition, changes the `web` and `api` container images, registers a new revision, updates the service, and waits for ECS stability.
 
 ## Safe rollout and rollback
 
 ECS must use a deployment circuit breaker with rollback enabled and an ALB health check pointed at `/healthz`. If smoke tests fail after ECS becomes stable, Jenkins marks the release failed. Rollback selects the preceding task-definition revision and updates the service; a future pipeline stage will automate that selection after the first AWS environment exists.
 
-Database migrations will run as a one-off ECS task before application promotion once the Django service is added. Only backward-compatible expand-and-contract migrations are allowed during rolling releases.
+Database migrations must run as a one-off ECS task before application promotion. Only backward-compatible expand-and-contract migrations are allowed during rolling releases.
 
 ## What each stage teaches
 
 - **Checkout** fixes the release to an auditable Git commit.
 - **Frontend checks** proves locked dependencies, tests, and production compilation work together.
-- **Backend checks** builds the Django test target when the backend scaffold lands.
+- **Backend checks** builds and runs the Django test target.
 - **Container build** creates the runtime artifact and records its commit label.
 - **Publish image** uploads an immutable SHA tag to ECR.
 - **Deploy staging** creates a new ECS task-definition revision and tests the public route.

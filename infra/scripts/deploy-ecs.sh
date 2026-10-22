@@ -12,8 +12,12 @@ aws ecs describe-task-definition \
   --task-definition "$task_family" \
   --query taskDefinition > current-task-definition.json
 
-jq --arg image "${WEB_IMAGE}:${image_tag}" '
-  .containerDefinitions |= map(if .name == "web" then .image = $image else . end) |
+jq --arg web_image "${WEB_IMAGE}:${image_tag}" --arg api_image "${API_IMAGE}:${image_tag}" '
+  .containerDefinitions |= map(
+    if .name == "web" then .image = $web_image
+    elif .name == "api" then .image = $api_image
+    else . end
+  ) |
   del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)
 ' current-task-definition.json > next-task-definition.json
 
