@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Low-cost Anime Index MVP on one Free Tier eligible EC2 instance.
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t3.small
+    AllowedValues: [t3.micro, t3.small]
+    Description: t3.small is recommended for the four application containers.
+  RepositoryUrl:
+    Type: String
+    Default: https://github.com/thelovedhimaan/animae-search.git
+  RepositoryBranch:
+    Type: String
+    Default: master
+
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub anime-index-instance-${AWS::Region}
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - { Key: Project, Value: anime-index }
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref InstanceRole]
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Public HTTP for Anime Index; administration uses SSM.
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - { Key: Name, Value: anime-index-web }
+        - { Key: Project, Value: anime-index }
+
+  Instance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT20M
+    Properties:
+      ImageId: !Sub "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}"
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroupIds: [!GetAtt SecurityGroup.GroupId]
+      MetadataOptions:
+        HttpEndpoint: enabled
+        HttpTokens: required
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp3
+            VolumeSize: 20
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - { Key: Name, Value: anime-index-mvp }
+        - { Key: Project, Value: anime-index }
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          exec > >(tee /var/log/anime-index-bootstrap.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+          dnf update -y
+          dnf install -y docker git curl
+          systemctl enable --now docker
+          mkdir -p /usr/local/lib/docker/cli-plugins
+          curl --fail --location --retry 3 \
+            https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 \
+            --output /usr/local/lib/docker/cli-plugins/docker-compose
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          docker compose version
+
+          install -d -m 0750 /opt/anime-index
+          git clone --branch ${RepositoryBranch} --depth 1 ${RepositoryUrl} /opt/anime-index/app
+          cd /opt/anime-index/app
+
+          TOKEN=$(curl -sS -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 300' http://169.254.169.254/latest/api/token)
+          PUBLIC_HOST=$(curl -sS -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
+          POSTGRES_PASSWORD=$(openssl rand -hex 24)
+          DJANGO_SECRET_KEY=$(openssl rand -hex 48)
+          cat > .env.aws <<EOF
+          PUBLIC_HOST=$PUBLIC_HOST
+          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+          DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
+          EOF
+          chmod 0600 .env.aws
+
+          docker compose --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml up --build --detach
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost/healthz >/dev/null; then
+              /opt/aws/bin/cfn-signal --success true --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
+              exit 0
+            fi
+            sleep 10
+          done
+          docker compose --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml logs
+          /opt/aws/bin/cfn-signal --success false --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
+          exit 1
+
+Outputs:
+  ApplicationUrl:
+    Description: Public application URL. DNS can be added later for HTTPS.
+    Value: !Sub http://${Instance.PublicDnsName}
+  InstanceId:
+    Value: !Ref Instance
+  SsmSessionCommand:
+    Value: !Sub aws ssm start-session --target ${Instance} --region ${AWS::Region}
+
