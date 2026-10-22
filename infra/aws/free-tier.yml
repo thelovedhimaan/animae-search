@@ -52,7 +52,7 @@ Resources:
     Type: AWS::EC2::Instance
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT20M
+        Timeout: PT30M
     Properties:
       ImageId: !Sub "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}"
       InstanceType: !Ref InstanceType
@@ -77,30 +77,47 @@ Resources:
           set -euxo pipefail
           exec > >(tee /var/log/anime-index-bootstrap.log | logger -t user-data -s 2>/dev/console) 2>&1
 
-          dnf update -y
-          dnf install -y docker git curl
+          dnf install -y docker git
+          if ! swapon --show | grep -q /swapfile; then
+            fallocate -l 2G /swapfile
+            chmod 0600 /swapfile
+            mkswap /swapfile
+            swapon /swapfile
+            echo '/swapfile none swap sw 0 0' >> /etc/fstab
+          fi
           systemctl enable --now docker
           mkdir -p /usr/local/lib/docker/cli-plugins
           curl --fail --location --retry 3 \
             https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 \
             --output /usr/local/lib/docker/cli-plugins/docker-compose
-          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          curl --fail --location --retry 3 \
+            https://github.com/docker/buildx/releases/download/v0.17.1/buildx-v0.17.1.linux-amd64 \
+            --output /usr/local/lib/docker/cli-plugins/docker-buildx
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-buildx
           docker compose version
+          docker buildx version
 
           install -d -m 0750 /opt/anime-index
-          git clone --branch ${RepositoryBranch} --depth 1 ${RepositoryUrl} /opt/anime-index/app
+          if [ -d /opt/anime-index/app/.git ]; then
+            git -C /opt/anime-index/app fetch --depth 1 origin ${RepositoryBranch}
+            git -C /opt/anime-index/app checkout --force FETCH_HEAD
+          else
+            git clone --branch ${RepositoryBranch} --depth 1 ${RepositoryUrl} /opt/anime-index/app
+          fi
           cd /opt/anime-index/app
 
-          TOKEN=$(curl -sS -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 300' http://169.254.169.254/latest/api/token)
-          PUBLIC_HOST=$(curl -sS -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
-          POSTGRES_PASSWORD=$(openssl rand -hex 24)
-          DJANGO_SECRET_KEY=$(openssl rand -hex 48)
-          cat > .env.aws <<EOF
+          if [ ! -f .env.aws ]; then
+            TOKEN=$(curl -sS -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 300' http://169.254.169.254/latest/api/token)
+            PUBLIC_HOST=$(curl -sS -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
+            POSTGRES_PASSWORD=$(openssl rand -hex 24)
+            DJANGO_SECRET_KEY=$(openssl rand -hex 48)
+            cat > .env.aws <<EOF
           PUBLIC_HOST=$PUBLIC_HOST
           POSTGRES_PASSWORD=$POSTGRES_PASSWORD
           DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
           EOF
-          chmod 0600 .env.aws
+            chmod 0600 .env.aws
+          fi
 
           docker compose --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml up --build --detach
 
