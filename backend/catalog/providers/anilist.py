@@ -59,6 +59,7 @@ def normalize_character(character: dict) -> dict:
     image = character.get("image") or {}
     media = character.get("media") or {}
     appearances = []
+    voice_actors = {}
     for edge in media.get("edges") or []:
         node = edge.get("node") or {}
         title = node.get("title") or {}
@@ -69,6 +70,8 @@ def normalize_character(character: dict) -> dict:
             "coverImage": (node.get("coverImage") or {}).get("large") or "",
             "role": edge.get("characterRole") or "",
         })
+        for actor in edge.get("voiceActors") or []:
+            voice_actors[actor["id"]] = actor
     return {
         "id": character["id"],
         "slug": re.sub(r"[^a-z0-9]+", "-", display_name.lower()).strip("-"),
@@ -82,7 +85,7 @@ def normalize_character(character: dict) -> dict:
         "favourites": character.get("favourites") or 0,
         "sourceUrl": character.get("siteUrl") or "",
         "appearances": appearances,
-        "voiceActors": character.get("voiceActors") or [],
+        "voiceActors": list(voice_actors.values()),
     }
 
 
@@ -98,12 +101,15 @@ class AniListClient:
                 timeout=self.timeout,
                 headers={"User-Agent": "AnimeSearch/0.1"},
             )
-            response.raise_for_status()
             payload = response.json()
         except (httpx.HTTPError, ValueError) as exc:
             raise ProviderUnavailable("AniList is temporarily unavailable") from exc
         if payload.get("errors"):
             raise ProviderUnavailable(payload["errors"][0].get("message", "AniList request failed"))
+        try:
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise ProviderUnavailable("AniList is temporarily unavailable") from exc
         return payload["data"]
 
     def trending(self, page: int = 1, per_page: int = 12) -> list[dict]:
@@ -198,10 +204,13 @@ class AniListClient:
           Character(id: $id) {{
             {CHARACTER_FIELDS}
             media(perPage: 8, type: ANIME, sort: POPULARITY_DESC) {{
-              edges {{ characterRole node {{ id title {{ romaji english native }} coverImage {{ large }} }} }}
-            }}
-            voiceActors(language: JAPANESE, sort: RELEVANCE) {{
-              id name {{ full native }} image {{ large }} languageV2 siteUrl
+              edges {{
+                characterRole
+                voiceActors(language: JAPANESE, sort: RELEVANCE) {{
+                  id name {{ full native }} image {{ large }} languageV2 siteUrl
+                }}
+                node {{ id title {{ romaji english native }} coverImage {{ large }} }}
+              }}
             }}
           }}
         }}
