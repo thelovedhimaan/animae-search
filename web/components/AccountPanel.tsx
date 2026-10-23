@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { AccountLibrary } from "./AccountLibrary";
 
 type Account = { id: number; email: string; displayName: string };
 type Mode = "login" | "register";
@@ -36,7 +37,7 @@ export function AccountPanel() {
   }
 
   if (loading) return <div className="account-card"><p>Checking your account…</p></div>;
-  if (user) return <div className="account-card account-welcome"><span className="kicker">SIGNED IN</span><h2>Welcome, {user.displayName}.</h2><p>{user.email}</p><p>Your account is ready for watchlists, ratings, reviews, and discussions as those features arrive.</p><button type="button" onClick={logout}>Sign out</button></div>;
+  if (user) return <div className="account-dashboard"><div className="account-card account-welcome"><span className="kicker">SIGNED IN</span><h2>Welcome, {user.displayName}.</h2><p>{user.email}</p><button type="button" onClick={logout}>Sign out</button></div><AccountLibrary /></div>;
 
   return <div className="account-card">
     <div className="account-tabs" aria-label="Account options"><button type="button" className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setMessage(""); }}>Sign in</button><button type="button" className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setMessage(""); }}>Create account</button></div>

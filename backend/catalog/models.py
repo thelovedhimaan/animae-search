@@ -74,3 +74,22 @@ class Review(models.Model):
     class Meta:
         ordering = ["-updated_at"]
         constraints = [models.UniqueConstraint(fields=["user", "media_id"], name="one_review_per_user_title")]
+
+
+class LibraryEntry(models.Model):
+    class Kind(models.TextChoices):
+        VISITED = "visited", "Visited"
+        LIKED = "liked", "Liked"
+        WATCH_LATER = "watch_later", "Watch later"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="anime_library", on_delete=models.CASCADE)
+    media_id = models.PositiveIntegerField(db_index=True)
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    title = models.CharField(max_length=240)
+    slug = models.SlugField(max_length=240)
+    cover_image = models.URLField(max_length=500, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [models.UniqueConstraint(fields=["user", "media_id", "kind"], name="one_library_entry_per_kind")]

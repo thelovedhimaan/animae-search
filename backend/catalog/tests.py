@@ -75,6 +75,15 @@ class CatalogApiTests(TestCase):
         response = self.client.post("/api/v1/reviews/1", {"rating": 9, "body": "A timeless space western."}, format="json")
         self.assertEqual(response.status_code, 401)
 
+    def test_library_tracks_and_removes_title(self):
+        self.client.post("/api/v1/account/register", {"email": "library@example.com", "password": "strong-pass"}, format="json")
+        payload = {"mediaId": 1, "kind": "watch_later", "title": "Cowboy Bebop", "slug": "cowboy-bebop", "coverImage": "https://example.com/cover.jpg"}
+        self.assertEqual(self.client.post("/api/v1/library", payload, format="json").status_code, 200)
+        self.assertEqual(self.client.get("/api/v1/library").json()["watch_later"][0]["title"], "Cowboy Bebop")
+        payload["active"] = False
+        self.client.post("/api/v1/library", payload, format="json")
+        self.assertEqual(self.client.get("/api/v1/library").json()["watch_later"], [])
+
     @patch("catalog.views.search_characters")
     def test_character_search_contract(self, search):
         search.return_value = {"results": [{"id": 1, "name": "Spike Spiegel"}], "page": {"currentPage": 1, "hasNextPage": False}, "source": "AniList"}

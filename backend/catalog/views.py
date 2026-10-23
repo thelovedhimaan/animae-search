@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .providers.anilist import ProviderUnavailable
-from .models import Review
+from .models import LibraryEntry, Review
 from .services import character_detail, discovery_home, search_characters, search_titles, title_detail
 
 AUTH_COOKIE = "anime_session"
@@ -218,3 +218,37 @@ class ReviewView(APIView):
             return Response({"detail": "Write at least 10 characters."}, status=400)
         review, _ = Review.objects.update_or_create(user=user, media_id=media_id, defaults={"title": title, "rating": rating, "body": body, "contains_spoilers": bool(request.data.get("containsSpoilers", False))})
         return Response({"review": {"id": review.pk}}, status=201)
+
+
+class LibraryView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in required."}, status=401)
+        groups = {kind: [] for kind in ("visited", "liked", "watch_later")}
+        for item in LibraryEntry.objects.filter(user=user)[:150]:
+            groups[item.kind].append({"mediaId": item.media_id, "title": item.title, "slug": item.slug, "coverImage": item.cover_image, "updatedAt": item.updated_at.isoformat()})
+        groups["reviewed"] = [{"mediaId": item.media_id, "title": item.title, "rating": item.rating, "updatedAt": item.updated_at.isoformat()} for item in Review.objects.filter(user=user)[:50]]
+        return Response(groups)
+
+    def post(self, request):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in required."}, status=401)
+        kind = str(request.data.get("kind", ""))
+        if kind not in LibraryEntry.Kind.values:
+            return Response({"detail": "Unknown library action."}, status=400)
+        try:
+            media_id = int(request.data.get("mediaId"))
+        except (TypeError, ValueError):
+            return Response({"detail": "Invalid anime ID."}, status=400)
+        active = bool(request.data.get("active", True))
+        lookup = {"user": user, "media_id": media_id, "kind": kind}
+        if not active:
+            LibraryEntry.objects.filter(**lookup).delete()
+            return Response({"active": False})
+        LibraryEntry.objects.update_or_create(**lookup, defaults={"title": str(request.data.get("title", "Anime"))[:240], "slug": str(request.data.get("slug", media_id))[:240], "cover_image": str(request.data.get("coverImage", ""))[:500]})
+        return Response({"active": True})
