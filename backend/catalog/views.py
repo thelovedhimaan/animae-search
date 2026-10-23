@@ -1,3 +1,8 @@
+from datetime import datetime, timezone
+
+from django.contrib.auth import authenticate, get_user_model
+from django.conf import settings
+from django.core import signing
 from django.db import connections
 from django.db.utils import OperationalError
 from rest_framework import status
@@ -5,7 +10,38 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .providers.anilist import ProviderUnavailable
+from .models import Review
 from .services import character_detail, discovery_home, search_characters, search_titles, title_detail
+
+AUTH_COOKIE = "anime_session"
+AUTH_COOKIE_SALT = "anime-index-account"
+AUTH_MAX_AGE = 60 * 60 * 24 * 30
+
+
+def current_season():
+    month = datetime.now(timezone.utc).month
+    return "WINTER" if month <= 3 else "SPRING" if month <= 6 else "SUMMER" if month <= 9 else "FALL"
+
+
+def account_payload(user):
+    return {"id": user.pk, "email": user.email, "displayName": user.first_name or user.email.split("@")[0]}
+
+
+def signed_in_user(request):
+    token = request.COOKIES.get(AUTH_COOKIE)
+    if not token:
+        return None
+    try:
+        user_id = signing.loads(token, salt=AUTH_COOKIE_SALT, max_age=AUTH_MAX_AGE)["user_id"]
+        return get_user_model().objects.filter(pk=user_id, is_active=True).first()
+    except (signing.BadSignature, KeyError, TypeError):
+        return None
+
+
+def set_account_cookie(response, user):
+    token = signing.dumps({"user_id": user.pk}, salt=AUTH_COOKIE_SALT, compress=True)
+    response.set_cookie(AUTH_COOKIE, token, max_age=AUTH_MAX_AGE, httponly=True, samesite="Lax", secure=settings.ACCOUNT_COOKIE_SECURE, path="/")
+    return response
 
 
 class HealthView(APIView):
@@ -49,7 +85,7 @@ class SearchView(APIView):
             "sort": ({"relevance": "SEARCH_MATCH", "trending": "TRENDING_DESC", "score": "SCORE_DESC", "popular": "POPULARITY_DESC", "newest": "START_DATE_DESC"}, "relevance"),
             "format": ({"tv": "TV", "movie": "MOVIE", "ova": "OVA", "ona": "ONA", "special": "SPECIAL"}, ""),
             "status": ({"airing": "RELEASING", "finished": "FINISHED", "upcoming": "NOT_YET_RELEASED"}, ""),
-            "season": ({"winter": "WINTER", "spring": "SPRING", "summer": "SUMMER", "fall": "FALL"}, ""),
+            "season": ({"current": current_season(), "winter": "WINTER", "spring": "SPRING", "summer": "SUMMER", "fall": "FALL"}, ""),
         }
         filters = {}
         for name, (allowed, default) in choices.items():
@@ -103,3 +139,82 @@ class CharacterDetailView(APIView):
             return Response(character_detail(character_id))
         except ProviderUnavailable as exc:
             return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
+
+
+class RegisterView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        email = str(request.data.get("email", "")).strip().lower()
+        display_name = str(request.data.get("displayName", "")).strip()[:80]
+        password = str(request.data.get("password", ""))
+        if "@" not in email or len(email) > 254:
+            return Response({"detail": "Enter a valid email address."}, status=400)
+        if len(password) < 8:
+            return Response({"detail": "Use at least eight characters for your password."}, status=400)
+        User = get_user_model()
+        if User.objects.filter(username=email).exists():
+            return Response({"detail": "An account already exists for this email."}, status=409)
+        user = User.objects.create_user(username=email, email=email, password=password, first_name=display_name)
+        return set_account_cookie(Response({"user": account_payload(user)}, status=201), user)
+
+
+class LoginView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        email = str(request.data.get("email", "")).strip().lower()
+        password = str(request.data.get("password", ""))
+        user = authenticate(request, username=email, password=password)
+        if user is None:
+            return Response({"detail": "Email or password is incorrect."}, status=401)
+        return set_account_cookie(Response({"user": account_payload(user)}), user)
+
+
+class AccountView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in required."}, status=401)
+        return Response({"user": account_payload(user)})
+
+
+class LogoutView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        response = Response(status=204)
+        response.delete_cookie(AUTH_COOKIE, path="/", samesite="Lax")
+        return response
+
+
+class ReviewView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, media_id: int):
+        reviews = Review.objects.filter(media_id=media_id).select_related("user")[:50]
+        return Response({"reviews": [{"id": item.pk, "displayName": item.user.first_name or "Anime fan", "rating": item.rating, "body": item.body, "containsSpoilers": item.contains_spoilers, "updatedAt": item.updated_at.isoformat()} for item in reviews]})
+
+    def post(self, request, media_id: int):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in to publish a review."}, status=401)
+        try:
+            rating = int(request.data.get("rating", 0))
+        except (TypeError, ValueError):
+            rating = 0
+        body = str(request.data.get("body", "")).strip()
+        title = str(request.data.get("title", "Anime"))[:240]
+        if rating < 1 or rating > 10:
+            return Response({"detail": "Choose a rating from 1 to 10."}, status=400)
+        if len(body) < 10:
+            return Response({"detail": "Write at least 10 characters."}, status=400)
+        review, _ = Review.objects.update_or_create(user=user, media_id=media_id, defaults={"title": title, "rating": rating, "body": body, "contains_spoilers": bool(request.data.get("containsSpoilers", False))})
+        return Response({"review": {"id": review.pk}}, status=201)

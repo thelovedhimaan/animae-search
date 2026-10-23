@@ -6,6 +6,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-local-development-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+ACCOUNT_COOKIE_SECURE = os.getenv("ACCOUNT_COOKIE_SECURE", "false").lower() == "true"
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,api").split(",")]
 
 INSTALLED_APPS = [

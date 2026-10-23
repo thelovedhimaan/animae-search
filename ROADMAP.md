@@ -44,6 +44,10 @@ Japanese voice-actor credits are now implemented.
 - Recommendation explanations and feedback
 - Seasonal discovery and notification preferences
 
+**Status:** started. Native email/password accounts, signed sessions, and title
+ratings/reviews are implemented. Google OAuth, lists, history, preferences, and
+recommendation feedback remain.
+
 **Exit condition:** recommendations improve using explicit user signals.
 
 ## Phase 3 - Grounded AI

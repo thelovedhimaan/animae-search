@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class AnimeTitle(models.Model):
@@ -58,3 +59,18 @@ class Character(models.Model):
     image = models.URLField(max_length=500, blank=True)
     description = models.TextField(blank=True)
     anime = models.ManyToManyField(AnimeTitle, related_name="characters", blank=True)
+
+
+class Review(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="anime_reviews", on_delete=models.CASCADE)
+    media_id = models.PositiveIntegerField(db_index=True)
+    title = models.CharField(max_length=240)
+    rating = models.PositiveSmallIntegerField()
+    body = models.TextField(max_length=2000)
+    contains_spoilers = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [models.UniqueConstraint(fields=["user", "media_id"], name="one_review_per_user_title")]
