@@ -8,8 +8,9 @@ The preview currently runs over HTTP on a credit-backed EC2 deployment in `ap-so
 
 ## What works now
 
-- Responsive discovery homepage, search results, character entry point, and title detail routes
-- Live AniList GraphQL adapter for trending titles, search, and title details
+- Responsive discovery homepage with trending, current-season, top-rated, and upcoming shelves
+- Shareable search URLs with title, genre, format, status, season, sort, and pagination controls
+- Live AniList GraphQL adapter for discovery, filtered search, and title details
 - Redis-backed response caching with an in-process development fallback
 - Curated frontend fallback data when the API or upstream provider is unavailable
 - PostgreSQL models for normalized titles, external provider identities, characters, and official viewing availability
@@ -87,7 +88,7 @@ The repository root [`Jenkinsfile`](./Jenkinsfile) performs these checks inside 
 
 The current MVP is deployed through the [`anime-index-mvp`](./infra/aws/README.md) CloudFormation stack on one EC2 instance. This keeps infrastructure cost and operational overhead low while product behavior is still changing quickly. The domain, TLS certificate, load balancer, managed data services, and ECS promotion path are intentionally deferred until the core discovery flows are useful and stable.
 
-The next product milestone is the rest of the reliable discovery foundation: richer homepage shelves, URL-backed filters and pagination, complete title and relationship data, character and studio pages, and clearer loading and provider-degradation states. Accounts, community, and grounded AI build on that foundation.
+The next product milestone is the rest of the reliable discovery foundation: complete title and relationship data, character and studio pages, regional availability, autocomplete, and clearer loading and provider-degradation states. Accounts, community, and grounded AI build on that foundation.
 
 ## Product and architecture docs
 

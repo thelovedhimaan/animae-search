@@ -59,7 +59,7 @@ class SearchView(APIView):
             filters[name] = allowed.get(value)
         filters["sort"] = filters["sort"] or "SEARCH_MATCH"
         filters["genre"] = request.query_params.get("genre", "").strip()[:40] or None
-        if not term and not any(filters.get(key) for key in ("format", "status", "season", "genre")) and filters["sort"] == "SEARCH_MATCH":
+        if not term and filters["sort"] == "SEARCH_MATCH":
             filters["sort"] = "POPULARITY_DESC"
         try:
             return Response(search_titles(term, page, **filters))

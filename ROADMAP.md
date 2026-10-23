@@ -28,10 +28,10 @@ and provider constraints change.
 - Accessibility and performance budgets
 - Unit, integration, and end-to-end test foundations
 
-**Status:** in progress. The responsive shell, live AniList trending/search/title
-adapter, title routes, caching, health checks, fallback states, and AWS preview
-are working. The current focus is deeper discovery: more shelves, shareable
-filters and pagination, relationships, character and studio pages, availability,
+**Status:** in progress. The responsive shell, four live discovery shelves,
+shareable search filters, sorting, pagination, title routes, caching, health
+checks, fallback states, and AWS preview are working. The current focus is title
+relationships, character and studio pages, regional availability, autocomplete,
 and stronger test and accessibility evidence.
 
 **Exit condition:** users can reliably discover and compare titles without AI.

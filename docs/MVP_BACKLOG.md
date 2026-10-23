@@ -16,8 +16,10 @@
 
 **Current delivery focus.** Complete these user-facing flows before expanding the deployment architecture.
 
-- Homepage shelves: trending, current season, top rated, upcoming, recently updated, and legally free.
-- Search with URL-backed filters, sorting, pagination, autocomplete, and keyboard operation.
+- [x] Homepage shelves for trending, current season, top rated, and upcoming titles.
+- [ ] Add recently updated and legally free shelves when their source and regional rules are defined.
+- [x] Search with shareable URL-backed filters, sorting, and pagination.
+- [ ] Add search autocomplete and complete keyboard interaction review.
 - Title pages with external ratings, relationships, characters, staff, studios, trailers, and availability.
 - Character, person, studio, genre, theme, and season pages.
 - Responsive skeletons, empty states, provider degradation, and rate-limit messaging.

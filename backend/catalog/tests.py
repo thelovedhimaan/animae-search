@@ -31,6 +31,13 @@ class CatalogApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         search.assert_called_once_with("", 2, sort="SCORE_DESC", format="MOVIE", status=None, season=None, genre=None)
 
+    @patch("catalog.views.search_titles")
+    def test_filter_only_browse_defaults_to_popularity(self, search):
+        search.return_value = {"results": [], "page": {"currentPage": 1, "hasNextPage": False}}
+        response = self.client.get("/api/v1/search?format=movie")
+        self.assertEqual(response.status_code, 200)
+        search.assert_called_once_with("", 1, sort="POPULARITY_DESC", format="MOVIE", status=None, season=None, genre=None)
+
     def test_invalid_filter_is_rejected(self):
         response = self.client.get("/api/v1/search?format=game")
         self.assertEqual(response.status_code, 400)
