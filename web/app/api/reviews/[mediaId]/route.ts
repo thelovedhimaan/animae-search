@@ -12,7 +12,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ mediaId:
   if (request.method === "POST") { headers.set("content-type", "application/json"); init.body = await request.text(); }
   try {
     const upstream = await fetch(`${API_URL}/api/v1/reviews/${mediaId}`, init);
-    return new NextResponse(await upstream.text(), { status: upstream.status, headers: { "content-type": "application/json" } });
+    return new NextResponse(upstream.status === 204 ? null : await upstream.text(), { status: upstream.status, headers: { "content-type": "application/json" } });
   } catch {
     return NextResponse.json({ detail: "Reviews are temporarily unavailable." }, { status: 503 });
   }
