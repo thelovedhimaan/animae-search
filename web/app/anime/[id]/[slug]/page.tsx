@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimeActions } from "@/components/AnimeActions";
+import { AnimeCast } from "@/components/AnimeCast";
 import { AskAnime } from "@/components/AskAnime";
 import { Reviews } from "@/components/Reviews";
 import { WatchLinks } from "@/components/WatchLinks";
@@ -28,7 +29,7 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
     </section>
-    <nav className="title-section-nav" aria-label="Title page sections"><a href="#overview">Overview</a><a href="#watch">Where to watch</a><a href="#ask">Ask Anime Index</a><a href="#reviews">Reviews</a></nav>
-    <div className="title-content"><WatchLinks links={anime.watchLinks ?? []} /><AskAnime mediaId={mediaId} anime={anime} /><Reviews mediaId={mediaId} title={anime.title} /></div>
+    <nav className="title-section-nav" aria-label="Title page sections"><a href="#overview">Overview</a><a href="#cast">Cast</a><a href="#watch">Where to watch</a><a href="#ask">Ask Anime Index</a><a href="#reviews">Reviews</a></nav>
+    <div className="title-content"><AnimeCast cast={anime.cast ?? []} studios={anime.studios ?? []} /><WatchLinks links={anime.watchLinks ?? []} /><AskAnime mediaId={mediaId} anime={anime} /><Reviews mediaId={mediaId} title={anime.title} /></div>
   </article>;
 }

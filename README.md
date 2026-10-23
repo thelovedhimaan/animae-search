@@ -11,6 +11,7 @@ The preview currently runs over HTTP on a credit-backed EC2 deployment in `ap-so
 - Responsive discovery homepage with trending, current-season, top-rated, and upcoming shelves
 - Shareable search URLs with title, genre, format, status, season, sort, and pagination controls
 - Character search and profiles with anime appearances and Japanese voice-actor credits
+- Rich title pages with cast, Japanese voice actors, studios, official viewing links, personal actions, reviews, and a conversational catalogue assistant
 - Live AniList GraphQL adapter for discovery, filtered search, and title details
 - Redis-backed response caching with an in-process development fallback
 - Curated frontend fallback data when the API or upstream provider is unavailable
@@ -59,6 +60,8 @@ python manage.py runserver
 ```
 
 Copy [`.env.example`](./.env.example) for the available configuration variables. Secrets belong in local environment files, Jenkins credentials, or AWS Secrets Manager and must never be committed.
+
+For model-backed, multi-turn title conversations, create a Gemini API key in Google AI Studio and set `GEMINI_API_KEY`. The default `gemini-2.5-flash-lite` model has a free tier; limits and data-use terms depend on the account and may change. `OPENAI_API_KEY` remains an optional fallback. Without either key, the assistant continues to answer common questions from the current AniList record instead of failing.
 
 ## How the first data flow works
 

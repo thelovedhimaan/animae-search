@@ -97,6 +97,29 @@ def normalize_character(character: dict) -> dict:
     }
 
 
+def normalize_media_detail(media: dict) -> dict:
+    result = normalize_media(media)
+    characters = media.get("characters") or {}
+    result["cast"] = [{
+        "id": (edge.get("node") or {}).get("id"),
+        "name": ((edge.get("node") or {}).get("name") or {}).get("full") or "Unknown character",
+        "nativeName": ((edge.get("node") or {}).get("name") or {}).get("native") or "",
+        "image": ((edge.get("node") or {}).get("image") or {}).get("large") or "",
+        "role": edge.get("role") or "",
+        "voiceActor": ({"id": edge["voiceActors"][0].get("id"), "name": ((edge["voiceActors"][0].get("name") or {}).get("full") or ""), "image": ((edge["voiceActors"][0].get("image") or {}).get("large") or ""} if edge.get("voiceActors") else None),
+    } for edge in characters.get("edges") or []]
+    result["studios"] = [{"id": node.get("id"), "name": node.get("name") or "Unknown studio", "url": node.get("siteUrl") or ""} for node in (media.get("studios") or {}).get("nodes") or []]
+    result["relations"] = [{
+        "relation": edge.get("relationType") or "RELATED",
+        "id": (edge.get("node") or {}).get("id"),
+        "title": (((edge.get("node") or {}).get("title") or {}).get("english") or ((edge.get("node") or {}).get("title") or {}).get("romaji") or "Untitled"),
+        "format": (edge.get("node") or {}).get("format") or "",
+        "coverImage": (((edge.get("node") or {}).get("coverImage") or {}).get("large") or ""),
+    } for edge in (media.get("relations") or {}).get("edges") or [] if (edge.get("node") or {}).get("type") == "ANIME"]
+    result["trailer"] = media.get("trailer")
+    return result
+
+
 class AniListClient:
     def __init__(self, timeout: float = 8.0):
         self.timeout = timeout
@@ -186,8 +209,16 @@ class AniListClient:
         return {"items": [normalize_media(item) for item in data["media"]], "page": data["pageInfo"]}
 
     def detail(self, media_id: int) -> dict:
-        query = f"query ($id: Int) {{ Media(id: $id, type: ANIME) {{ {MEDIA_FIELDS} }} }}"
-        return normalize_media(self._request(query, {"id": media_id})["Media"])
+        query = f"""
+        query ($id: Int) {{ Media(id: $id, type: ANIME) {{
+          {MEDIA_FIELDS}
+          characters(perPage: 12, sort: [ROLE, RELEVANCE]) {{ edges {{ role node {{ id name {{ full native }} image {{ large }} }} voiceActors(language: JAPANESE, sort: RELEVANCE) {{ id name {{ full }} image {{ large }} }} }} }}
+          studios(isMain: true) {{ nodes {{ id name siteUrl }} }}
+          relations {{ edges {{ relationType node {{ id type format title {{ romaji english }} coverImage {{ large }} }} }} }}
+          trailer {{ id site thumbnail }}
+        }} }}
+        """
+        return normalize_media_detail(self._request(query, {"id": media_id})["Media"])
 
     def characters(self, term: str = "", page: int = 1, per_page: int = 20) -> dict:
         search_declaration = ", $search: String" if term else ""

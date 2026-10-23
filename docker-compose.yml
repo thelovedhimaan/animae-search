@@ -22,6 +22,10 @@ services:
       REDIS_URL: redis://redis:6379/0
       DJANGO_SECRET_KEY: local-compose-secret
       DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,api
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
     ports: ["8000:8000"]
     depends_on:
       db:

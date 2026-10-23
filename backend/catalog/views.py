@@ -250,15 +250,33 @@ class AnimeQuestionView(APIView):
             anime = {key: context.get(key) for key in ("title", "nativeTitle", "description", "format", "status", "episodes", "season", "seasonYear", "genres", "averageScore", "watchLinks")}
             anime["sourceLabel"] = "page catalogue snapshot"
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
-        if api_key:
-            context = {key: anime.get(key) for key in ("title", "nativeTitle", "description", "format", "status", "episodes", "season", "seasonYear", "genres", "averageScore", "watchLinks")}
+        gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+        history = request.data.get("history") if isinstance(request.data.get("history"), list) else []
+        history = [{"role": str(item.get("role", "user")), "text": str(item.get("text", ""))[:1000]} for item in history[-8:] if isinstance(item, dict)]
+        context = {key: anime.get(key) for key in ("title", "nativeTitle", "description", "format", "status", "episodes", "season", "seasonYear", "genres", "averageScore", "watchLinks", "cast", "studios", "relations")}
+        instruction = "You are Anime Index, a concise anime guide. Answer using only the supplied catalogue record. Respect the conversation context for follow-up questions. Never invent availability, cast, plot facts, or spoilers. If the record is insufficient, say so. Mention that streaming availability varies by region when relevant."
+        if gemini_key:
+            contents = [{"role": "model" if item["role"] == "assistant" else "user", "parts": [{"text": item["text"]}]} for item in history]
+            contents.append({"role": "user", "parts": [{"text": question}]})
             try:
-                response = httpx.post("https://api.openai.com/v1/responses", headers={"Authorization": f"Bearer {api_key}"}, json={"model": os.getenv("OPENAI_MODEL", "gpt-5-mini"), "input": f"Answer only from this anime catalogue record. If it does not contain the answer, say so. Record: {context}\nQuestion: {question}"}, timeout=15)
+                model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+                response = httpx.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", params={"key": gemini_key}, json={"systemInstruction": {"parts": [{"text": f"{instruction}\nCatalogue record: {context}"}]}, "contents": contents, "generationConfig": {"temperature": 0.25, "maxOutputTokens": 500}}, timeout=20)
+                response.raise_for_status()
+                payload = response.json()
+                answer = "".join(part.get("text", "") for candidate in payload.get("candidates", [])[:1] for part in (candidate.get("content") or {}).get("parts", []))
+                if answer:
+                    return Response({"answer": answer, "mode": "ai", "provider": "Gemini", "source": anime.get("sourceLabel", "AniList")})
+            except (httpx.HTTPError, ValueError):
+                pass
+        if api_key:
+            try:
+                transcript = "\n".join(f"{item['role']}: {item['text']}" for item in history)
+                response = httpx.post("https://api.openai.com/v1/responses", headers={"Authorization": f"Bearer {api_key}"}, json={"model": os.getenv("OPENAI_MODEL", "gpt-5-mini"), "instructions": f"{instruction}\nCatalogue record: {context}", "input": f"{transcript}\nuser: {question}"}, timeout=20)
                 response.raise_for_status()
                 payload = response.json()
                 answer = next((part.get("text") for item in payload.get("output", []) for part in item.get("content", []) if part.get("type") == "output_text"), "")
                 if answer:
-                    return Response({"answer": answer, "mode": "ai", "source": anime.get("sourceLabel", "AniList")})
+                    return Response({"answer": answer, "mode": "ai", "provider": "OpenAI", "source": anime.get("sourceLabel", "AniList")})
             except (httpx.HTTPError, ValueError):
                 pass
         lower = question.lower()
