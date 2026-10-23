@@ -2,6 +2,15 @@
 
 This stack runs the web app, Django API, PostgreSQL, and Redis on one Free Tier eligible EC2 instance. It deliberately excludes RDS, ElastiCache, an Application Load Balancer, NAT Gateway, Kafka, and an always-running Jenkins controller.
 
+## Current preview
+
+- Application: [Anime Index on AWS](http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com)
+- Region: `ap-south-1`
+- Stack: `anime-index-mvp`
+- Transport: HTTP during the product-development preview
+
+A stable domain and HTTPS are the next infrastructure improvement. They are deliberately scheduled after the core discovery flows are developed so the next deployment work promotes a substantially more useful application.
+
 The deployment is intended for the MVP while AWS promotional credits are active. It has a single failure domain and should not be described as highly available. Data is stored on the instance's encrypted EBS volume and disappears when the CloudFormation stack is deleted.
 
 Deploy:

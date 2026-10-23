@@ -28,6 +28,12 @@ and provider constraints change.
 - Accessibility and performance budgets
 - Unit, integration, and end-to-end test foundations
 
+**Status:** in progress. The responsive shell, live AniList trending/search/title
+adapter, title routes, caching, health checks, fallback states, and AWS preview
+are working. The current focus is deeper discovery: more shelves, shareable
+filters and pagination, relationships, character and studio pages, availability,
+and stronger test and accessibility evidence.
+
 **Exit condition:** users can reliably discover and compare titles without AI.
 
 ## Phase 2 - Personal discovery
@@ -57,6 +63,10 @@ and spoiler-safety thresholds.
 - SEO, social cards, sitemap, and structured metadata
 - Security review, rate limiting, backups, and recovery documentation
 - Public architecture case study and performance report
+
+**Status:** a credit-backed HTTP preview is live on AWS. A stable domain, HTTPS,
+managed deployment pipeline, production monitoring, and recovery evidence remain
+deferred until the application has completed its core product milestones.
 
 **Exit condition:** deployed application with operational evidence and a public
 engineering case study.

@@ -2,15 +2,19 @@
 
 ## P0: foundation
 
-- Replace Create React App with a Next.js TypeScript application.
-- Create Django/DRF project with versioned `/api/v1` routes and OpenAPI schema.
-- Add Docker Compose for web, API, worker, PostgreSQL, Redis, and optional Kafka profile.
-- Add environment validation, structured logging, health checks, and request IDs.
-- Model provider identities so one anime can map to AniList, MyAnimeList/Jikan, Wikidata, and availability sources.
-- Build an idempotent AniList import with cache headers, rate-limit handling, retries, and provenance.
-- Add Jenkins multibranch pipeline for tests, images, ECR, staging, production, evidence, and rollback.
+- [x] Replace Create React App with a Next.js TypeScript application.
+- [x] Create a Django/DRF project with versioned `/api/v1` routes.
+- [x] Add Docker Compose for web, API, worker, PostgreSQL, Redis, and optional Kafka.
+- [x] Add environment validation, health checks, throttling, and API contract tests.
+- [x] Model provider identities so one anime can map to multiple data sources.
+- [x] Add a live AniList adapter with normalized responses, Redis caching, and graceful fallback behavior.
+- [x] Add an AWS CloudFormation deployment for the credit-backed MVP preview.
+- [ ] Complete OpenAPI coverage, structured logging, request IDs, import retries, and provenance records.
+- [ ] Activate the Jenkins ECR/ECS promotion path when the product is ready for managed environments.
 
 ## P1: public discovery
+
+**Current delivery focus.** Complete these user-facing flows before expanding the deployment architecture.
 
 - Homepage shelves: trending, current season, top rated, upcoming, recently updated, and legally free.
 - Search with URL-backed filters, sorting, pagination, autocomplete, and keyboard operation.
@@ -46,4 +50,5 @@
 - Activate OpenSearch or Kafka only when their decision gates are met.
 - AWS production infrastructure, backup restoration exercise, alarms, runbooks, and incident drills.
 - Public architecture case study with measured accessibility, performance, reliability, and search quality.
+- Stable domain, HTTPS certificate, redirects, and security-header verification.
 

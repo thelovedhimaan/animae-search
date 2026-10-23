@@ -2,6 +2,10 @@
 
 Anime Index is a production-oriented anime discovery platform. The active rebuild combines a modern Next.js interface with a Django API and a normalized catalogue designed to support search, title and character pages, regional viewing availability, personal libraries, community features, and grounded AI.
 
+**Live AWS preview:** [Open Anime Index](http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com)
+
+The preview currently runs over HTTP on a credit-backed EC2 deployment in `ap-south-1`. A stable domain and HTTPS are the next deployment improvement, after the discovery experience has grown beyond the current foundation.
+
 ## What works now
 
 - Responsive discovery homepage, search results, character entry point, and title detail routes
@@ -11,7 +15,8 @@ Anime Index is a production-oriented anime discovery platform. The active rebuil
 - PostgreSQL models for normalized titles, external provider identities, characters, and official viewing availability
 - API validation, throttling, health checks, and contract tests
 - Docker Compose environment for Next.js, Django, PostgreSQL with pgvector, Redis, and optional Kafka
-- Jenkins pipeline that tests both services and publishes immutable web/API images to Amazon ECR before ECS deployment
+- Credit-backed AWS preview running the complete container stack on one EC2 instance
+- Jenkins pipeline prepared to test both services and publish immutable web/API images to Amazon ECR before a future ECS deployment
 
 The original Create React App prototype remains in [`legacy/`](./legacy) for history. It is no longer the active application.
 
@@ -78,6 +83,12 @@ python manage.py test
 
 The repository root [`Jenkinsfile`](./Jenkinsfile) performs these checks inside containers, builds separate web and API images, publishes them to ECR, deploys staging, runs smoke tests, and requires an explicit gate before production promotion.
 
+## Deployment status
+
+The current MVP is deployed through the [`anime-index-mvp`](./infra/aws/README.md) CloudFormation stack on one EC2 instance. This keeps infrastructure cost and operational overhead low while product behavior is still changing quickly. The domain, TLS certificate, load balancer, managed data services, and ECS promotion path are intentionally deferred until the core discovery flows are useful and stable.
+
+The next product milestone is the rest of the reliable discovery foundation: richer homepage shelves, URL-backed filters and pagination, complete title and relationship data, character and studio pages, and clearer loading and provider-degradation states. Accounts, community, and grounded AI build on that foundation.
+
 ## Product and architecture docs
 
 - [Product definition](./docs/PRODUCT.md)
@@ -87,4 +98,4 @@ The repository root [`Jenkinsfile`](./Jenkinsfile) performs these checks inside 
 - [Implementation learning guide](./docs/LEARNING_GUIDE.md)
 - [Delivery roadmap](./ROADMAP.md)
 
-The next implementation slice is identity and personal libraries: Google OAuth, watchlist states, ratings, privacy controls, and account export/deletion.
+See the [prioritized MVP backlog](./docs/MVP_BACKLOG.md) for the product-first delivery order and the [roadmap](./ROADMAP.md) for the gates before the HTTPS and production-infrastructure phase.

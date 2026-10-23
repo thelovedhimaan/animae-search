@@ -1,5 +1,11 @@
 # Jenkins Setup and Deployment
 
+> **Deployment sequence:** the live MVP currently uses the smaller single-EC2
+> CloudFormation stack documented in [`infra/aws/README.md`](../infra/aws/README.md).
+> This Jenkins/ECR/ECS design is the target production pipeline. It will be
+> activated after the public discovery experience is substantially complete;
+> the stable domain and HTTPS rollout belongs to the same later deployment phase.
+
 ## Required Jenkins capabilities
 
 Use a Linux Jenkins agent with Docker, AWS CLI v2, `jq`, and `curl`. Node.js 22.13 or newer is useful for local troubleshooting, while the pipeline itself builds with pinned container images. Install the Pipeline, Git, Credentials Binding, AWS Credentials, and Docker Pipeline plugins. The agent needs enough disk space for immutable container builds and must not expose the Docker socket to untrusted public jobs.
