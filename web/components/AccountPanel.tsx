@@ -25,12 +25,14 @@ export function AccountPanel() {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) return setMessage(result.detail || "We could not complete that request.");
     setUser(result.user);
+    window.dispatchEvent(new Event("account-changed"));
   }
 
   async function logout() {
     await fetch("/api/account/logout", { method: "POST" });
     setUser(null);
     setMode("login");
+    window.dispatchEvent(new Event("account-changed"));
   }
 
   if (loading) return <div className="account-card"><p>Checking your account…</p></div>;
