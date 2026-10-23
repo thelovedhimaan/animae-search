@@ -20,3 +20,4 @@ async function proxy(request: NextRequest, context: { params: Promise<{ mediaId:
 
 export const GET = proxy;
 export const POST = proxy;
+export const DELETE = proxy;

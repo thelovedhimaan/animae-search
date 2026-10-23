@@ -19,6 +19,7 @@ export type AnimeTitle = {
   studios?: string[];
   sourceLabel: string;
   updatedAt: string;
+  watchLinks?: { site: string; url: string; icon?: string; color?: string }[];
 };
 
 export type DiscoveryShelf = { key: string; title: string; subtitle: string; items: AnimeTitle[] };

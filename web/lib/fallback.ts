@@ -1,6 +1,7 @@
-import type { HomeDiscovery } from "./types";
+import type { AnimeTitle, HomeDiscovery } from "./types";
 
-const image = (id: string) => `https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/${id}.jpg`;
+const covers: Record<string, string> = { "n16498-C6FPmWm59CyP": "/covers/attack-on-titan.svg", "n1535-J5r2Fjr1fTX1": "/covers/death-note.svg", "n113415-LHBAeoZDIsnF": "/covers/jujutsu-kaisen.svg", "n21-YCDoj1EkAxFn": "/covers/one-piece.svg", "n11061-sIpBprNRfzCe": "/covers/hunter-x-hunter.svg" };
+const image = (id: string) => covers[id] || "/covers/death-note.svg";
 
 export const fallbackDiscovery: HomeDiscovery = {
   source: "curated fallback",
@@ -24,3 +25,10 @@ export const fallbackDiscovery: HomeDiscovery = {
     { key: "upcoming", title: "Coming next", subtitle: "Upcoming titles return when the live provider is available.", items: [] }
   ]
 };
+
+const officialSearchLinks = (title: string): NonNullable<AnimeTitle["watchLinks"]> => [
+  { site: "Search Crunchyroll", url: `https://www.crunchyroll.com/search?q=${encodeURIComponent(title)}` },
+  { site: "Search Netflix", url: `https://www.netflix.com/search?q=${encodeURIComponent(title)}` },
+];
+
+fallbackDiscovery.shelves.forEach((shelf) => shelf.items.forEach((item) => { item.watchLinks = officialSearchLinks(item.title); }));

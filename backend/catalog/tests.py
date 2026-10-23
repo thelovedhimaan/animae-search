@@ -75,6 +75,22 @@ class CatalogApiTests(TestCase):
         response = self.client.post("/api/v1/reviews/1", {"rating": 9, "body": "A timeless space western."}, format="json")
         self.assertEqual(response.status_code, 401)
 
+    def test_user_can_delete_own_review(self):
+        self.client.post("/api/v1/account/register", {"email": "delete@example.com", "password": "strong-pass"}, format="json")
+        self.client.post("/api/v1/reviews/1", {"title": "Cowboy Bebop", "rating": 9, "body": "A timeless space western."}, format="json")
+        reviews = self.client.get("/api/v1/reviews/1").json()["reviews"]
+        self.assertTrue(reviews[0]["isOwner"])
+        self.assertEqual(self.client.delete("/api/v1/reviews/1").status_code, 204)
+        self.assertEqual(self.client.get("/api/v1/reviews/1").json()["reviews"], [])
+
+    @patch("catalog.views.title_detail")
+    def test_anime_question_uses_grounded_catalogue_answer(self, detail):
+        detail.return_value = {"title": "Cowboy Bebop", "episodes": 26, "sourceLabel": "AniList", "watchLinks": []}
+        response = self.client.post("/api/v1/anime/1/ask", {"question": "How many episodes are there?"}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("26", response.json()["answer"])
+        self.assertEqual(response.json()["mode"], "catalogue")
+
     def test_library_tracks_and_removes_title(self):
         self.client.post("/api/v1/account/register", {"email": "library@example.com", "password": "strong-pass"}, format="json")
         payload = {"mediaId": 1, "kind": "watch_later", "title": "Cowboy Bebop", "slug": "cowboy-bebop", "coverImage": "https://example.com/cover.jpg"}

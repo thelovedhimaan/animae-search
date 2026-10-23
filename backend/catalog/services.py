@@ -35,7 +35,7 @@ def search_titles(term: str, page: int, **filters):
 
 
 def title_detail(media_id: int):
-    return _cached(f"title:{media_id}:v1", 3600, lambda: AniListClient().detail(media_id))
+    return _cached(f"title:{media_id}:v2", 3600, lambda: AniListClient().detail(media_id))
 
 
 def search_characters(term: str, page: int):

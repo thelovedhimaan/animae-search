@@ -9,6 +9,7 @@ MEDIA_FIELDS = """
 id title { romaji english native } description(asHtml: false)
 format status episodes season seasonYear genres averageScore popularity
 coverImage { extraLarge large color } bannerImage
+externalLinks { site url type icon color isDisabled }
 """
 
 CHARACTER_FIELDS = """
@@ -31,6 +32,12 @@ def normalize_media(media: dict) -> dict:
     title = media.get("title") or {}
     cover = media.get("coverImage") or {}
     display_title = title.get("english") or title.get("romaji") or title.get("native") or "Untitled"
+    known_streaming = ("crunchyroll", "netflix", "hulu", "hidive", "youtube", "amazon", "bilibili", "disney", "tubi")
+    watch_links = []
+    for link in media.get("externalLinks") or []:
+        site = (link.get("site") or "").lower()
+        if not link.get("isDisabled") and link.get("url") and (link.get("type") == "STREAMING" or any(provider in site for provider in known_streaming)):
+            watch_links.append({"site": link.get("site") or "Official stream", "url": link["url"], "icon": link.get("icon") or "", "color": link.get("color") or ""})
     return {
         "id": media["id"],
         "slug": re.sub(r"[^a-z0-9]+", "-", display_title.lower()).strip("-"),
@@ -50,6 +57,7 @@ def normalize_media(media: dict) -> dict:
         "accent": cover.get("color") or "#7457ff",
         "sourceLabel": "AniList",
         "updatedAt": "live",
+        "watchLinks": watch_links,
     }
 
 

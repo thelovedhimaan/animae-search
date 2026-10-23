@@ -1,4 +1,7 @@
 from datetime import datetime, timezone
+import os
+
+import httpx
 
 from django.contrib.auth import authenticate, get_user_model
 from django.conf import settings
@@ -199,8 +202,9 @@ class ReviewView(APIView):
     permission_classes = []
 
     def get(self, request, media_id: int):
+        user = signed_in_user(request)
         reviews = Review.objects.filter(media_id=media_id).select_related("user")[:50]
-        return Response({"reviews": [{"id": item.pk, "displayName": item.user.first_name or "Anime fan", "rating": item.rating, "body": item.body, "containsSpoilers": item.contains_spoilers, "updatedAt": item.updated_at.isoformat()} for item in reviews]})
+        return Response({"reviews": [{"id": item.pk, "displayName": item.user.first_name or "Anime fan", "rating": item.rating, "body": item.body, "containsSpoilers": item.contains_spoilers, "updatedAt": item.updated_at.isoformat(), "isOwner": bool(user and item.user_id == user.pk)} for item in reviews]})
 
     def post(self, request, media_id: int):
         user = signed_in_user(request)
@@ -218,6 +222,58 @@ class ReviewView(APIView):
             return Response({"detail": "Write at least 10 characters."}, status=400)
         review, _ = Review.objects.update_or_create(user=user, media_id=media_id, defaults={"title": title, "rating": rating, "body": body, "contains_spoilers": bool(request.data.get("containsSpoilers", False))})
         return Response({"review": {"id": review.pk}}, status=201)
+
+    def delete(self, request, media_id: int):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in required."}, status=401)
+        deleted, _ = Review.objects.filter(user=user, media_id=media_id).delete()
+        if not deleted:
+            return Response({"detail": "Review not found."}, status=404)
+        return Response(status=204)
+
+
+class AnimeQuestionView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request, media_id: int):
+        question = str(request.data.get("question", "")).strip()[:500]
+        if len(question) < 3:
+            return Response({"detail": "Ask a complete question."}, status=400)
+        try:
+            anime = title_detail(media_id)
+        except ProviderUnavailable as exc:
+            context = request.data.get("context") if isinstance(request.data.get("context"), dict) else {}
+            if not context.get("title"):
+                return Response({"detail": str(exc)}, status=503)
+            anime = {key: context.get(key) for key in ("title", "nativeTitle", "description", "format", "status", "episodes", "season", "seasonYear", "genres", "averageScore", "watchLinks")}
+            anime["sourceLabel"] = "page catalogue snapshot"
+        api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        if api_key:
+            context = {key: anime.get(key) for key in ("title", "nativeTitle", "description", "format", "status", "episodes", "season", "seasonYear", "genres", "averageScore", "watchLinks")}
+            try:
+                response = httpx.post("https://api.openai.com/v1/responses", headers={"Authorization": f"Bearer {api_key}"}, json={"model": os.getenv("OPENAI_MODEL", "gpt-5-mini"), "input": f"Answer only from this anime catalogue record. If it does not contain the answer, say so. Record: {context}\nQuestion: {question}"}, timeout=15)
+                response.raise_for_status()
+                payload = response.json()
+                answer = next((part.get("text") for item in payload.get("output", []) for part in item.get("content", []) if part.get("type") == "output_text"), "")
+                if answer:
+                    return Response({"answer": answer, "mode": "ai", "source": anime.get("sourceLabel", "AniList")})
+            except (httpx.HTTPError, ValueError):
+                pass
+        lower = question.lower()
+        if any(word in lower for word in ("watch", "stream", "available")):
+            links = anime.get("watchLinks") or []
+            answer = "Official viewing links in the catalogue: " + ", ".join(link["site"] for link in links) if links else "The catalogue does not currently list an official stream for this title. Availability can vary by region."
+        elif any(word in lower for word in ("episode", "long", "length")):
+            answer = f"{anime['title']} has {anime.get('episodes') or 'an unconfirmed number of'} episodes in the current catalogue record."
+        elif any(word in lower for word in ("score", "rating", "rated")):
+            answer = f"Its AniList community score is {anime.get('averageScore') / 10:.1f}/10." if anime.get("averageScore") else "The catalogue does not currently include a community score."
+        elif any(word in lower for word in ("genre", "type", "kind")):
+            answer = f"It is listed as {anime.get('format') or 'anime'} with these genres: {', '.join(anime.get('genres') or [])}."
+        else:
+            answer = anime.get("description") or "The catalogue does not contain enough information to answer that question yet."
+        return Response({"answer": answer, "mode": "catalogue", "source": anime.get("sourceLabel", "AniList")})
 
 
 class LibraryView(APIView):
