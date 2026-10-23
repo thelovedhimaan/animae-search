@@ -14,23 +14,23 @@ def _cached(key: str, ttl: int, loader):
 
 
 def discovery_home():
-    client = AniListClient()
-    items = _cached("discovery:trending:v1", 900, lambda: client.trending(per_page=12))
+    items = _cached("discovery:home:v2", 900, lambda: AniListClient().discovery(per_page=10))
     return {
-        "shelves": [{
-            "key": "trending",
-            "title": "Trending now",
-            "subtitle": "What the anime community is watching and discussing.",
-            "items": items,
-        }],
+        "shelves": [
+            {"key": "trending", "title": "Trending now", "subtitle": "What the anime community is watching and discussing.", "items": items["trending"]},
+            {"key": "current", "title": "This season", "subtitle": "The most popular anime in the current broadcast season.", "items": items["current"]},
+            {"key": "top-rated", "title": "Top rated", "subtitle": "The highest-scoring anime in the AniList catalogue.", "items": items["top-rated"]},
+            {"key": "upcoming", "title": "Coming next", "subtitle": "Anticipated anime that have not started airing yet.", "items": items["upcoming"]},
+        ],
         "source": "AniList",
         "updatedAt": "live",
     }
 
 
-def search_titles(term: str, page: int):
-    digest = hashlib.sha256(term.casefold().encode()).hexdigest()[:16]
-    result = _cached(f"search:{digest}:{page}:v1", 300, lambda: AniListClient().search(term, page))
+def search_titles(term: str, page: int, **filters):
+    signature = ":".join([term.casefold(), str(page), *(str(filters[key]) for key in sorted(filters))])
+    digest = hashlib.sha256(signature.encode()).hexdigest()[:20]
+    result = _cached(f"search:{digest}:v2", 300, lambda: AniListClient().search(term, page, **filters))
     return {"results": result["items"], "page": result["page"]}
 
 

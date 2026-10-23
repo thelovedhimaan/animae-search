@@ -18,6 +18,9 @@ export const fallbackDiscovery: HomeDiscovery = {
         { id: 21, slug: "one-piece", title: "ONE PIECE", nativeTitle: "ONE PIECE", description: "A pirate crew crosses the Grand Line in search of the ultimate treasure.", coverImage: image("n21-YCDoj1EkAxFn"), format: "TV", status: "Releasing", genres: ["Action", "Adventure", "Fantasy"], averageScore: 88, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" },
         { id: 11061, slug: "hunter-x-hunter-2011", title: "Hunter x Hunter", nativeTitle: "HUNTER×HUNTER", description: "A young hunter searches for his father and discovers a vast world.", coverImage: image("n11061-sIpBprNRfzCe"), format: "TV", status: "Finished", episodes: 148, genres: ["Action", "Adventure", "Fantasy"], averageScore: 90, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" }
       ]
-    }
+    },
+    { key: "current", title: "This season", subtitle: "Popular current-season titles from the preview catalogue.", items: [] },
+    { key: "top-rated", title: "Top rated", subtitle: "Highest-scoring titles from the preview catalogue.", items: [] },
+    { key: "upcoming", title: "Coming next", subtitle: "Upcoming titles return when the live provider is available.", items: [] }
   ]
 };

@@ -1,9 +1,17 @@
+import Link from "next/link";
 import { AnimeCard } from "@/components/AnimeCard";
+import { SearchFilters } from "@/components/SearchFilters";
 import { SearchForm } from "@/components/SearchForm";
 import { searchAnime } from "@/lib/api";
+import type { SearchFilters as Filters } from "@/lib/types";
 
-export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q = "" } = await searchParams;
-  const results = await searchAnime(q);
-  return <section className="search-page section"><span className="kicker">CATALOGUE SEARCH</span><h1>{q ? `Results for “${q}”` : "Search the anime index"}</h1><p>Titles, alternate names, genres, studios and themes in one query.</p><SearchForm defaultValue={q} compact /><div className="result-meta"><strong>{results.length} results</strong><span>Sorted by relevance</span></div>{results.length ? <div className="results-grid">{results.map((anime) => <AnimeCard anime={anime} key={anime.id} />)}</div> : <div className="empty"><strong>{q ? "No close matches yet." : "Begin with a title, character, studio or mood."}</strong><p>Try a broader phrase or explore a genre from the homepage.</p></div>}</section>;
+const clean = (value: string | undefined) => value?.trim().toLowerCase() ?? "";
+
+export default async function SearchPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams;
+  const filters: Filters = { q: params.q?.trim() ?? "", page: Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1), sort: clean(params.sort) || "relevance", format: clean(params.format), status: clean(params.status), season: clean(params.season), genre: params.genre?.trim() ?? "" };
+  const response = await searchAnime(filters);
+  const pageHref = (page: number) => { const next = new URLSearchParams(); Object.entries({ ...filters, page }).forEach(([key, value]) => { if (value !== "" && value !== 1) next.set(key, String(value)); }); return `/search?${next}`; };
+  const filterCount = [filters.format, filters.status, filters.season, filters.genre].filter(Boolean).length;
+  return <section className="search-page section"><span className="kicker">CATALOGUE SEARCH</span><h1>{filters.q ? `Results for “${filters.q}”` : "Explore the anime index"}</h1><p>Search titles, then narrow the catalogue by format, status, season, genre, or ranking.</p><SearchForm defaultValue={filters.q} compact /><SearchFilters filters={filters} />{response.degraded && <div className="inline-notice">Live search is unavailable, so these results use the preview catalogue.</div>}<div className="result-meta"><strong>{response.page.total ?? response.results.length} results</strong><span>{filterCount ? `${filterCount} active filters · ` : ""}Page {response.page.currentPage}</span></div>{response.results.length ? <><div className="results-grid">{response.results.map((anime) => <AnimeCard anime={anime} key={anime.id} />)}</div><nav className="pagination" aria-label="Search result pages">{filters.page > 1 ? <Link href={pageHref(filters.page - 1)}>← Previous</Link> : <span />}{response.page.hasNextPage && <Link href={pageHref(filters.page + 1)}>Next →</Link>}</nav></> : <div className="empty"><strong>No titles match this combination yet.</strong><p>Remove a filter, try a broader title, or browse the most popular anime.</p><Link className="primary-action" href="/search?sort=popular">Browse popular titles</Link></div>}</section>;
 }

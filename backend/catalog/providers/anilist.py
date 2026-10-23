@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import httpx
 
@@ -79,16 +79,44 @@ class AniListClient:
         data = self._request(query, {"page": page, "perPage": min(per_page, 30)})
         return [normalize_media(item) for item in data["Page"]["media"]]
 
-    def search(self, term: str, page: int = 1, per_page: int = 18) -> dict:
+    def discovery(self, per_page: int = 10) -> dict[str, list[dict]]:
+        now = datetime.now(UTC)
+        season = "WINTER" if now.month <= 3 else "SPRING" if now.month <= 6 else "SUMMER" if now.month <= 9 else "FALL"
         query = f"""
-        query ($search: String, $page: Int, $perPage: Int) {{
-          Page(page: $page, perPage: $perPage) {{
-            pageInfo {{ currentPage hasNextPage total }}
-            media(type: ANIME, search: $search, sort: SEARCH_MATCH, isAdult: false) {{ {MEDIA_FIELDS} }}
+        query ($perPage: Int, $season: MediaSeason, $seasonYear: Int) {{
+          trending: Page(page: 1, perPage: $perPage) {{
+            media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {{ {MEDIA_FIELDS} }}
+          }}
+          current: Page(page: 1, perPage: $perPage) {{
+            media(type: ANIME, season: $season, seasonYear: $seasonYear, sort: POPULARITY_DESC, isAdult: false) {{ {MEDIA_FIELDS} }}
+          }}
+          topRated: Page(page: 1, perPage: $perPage) {{
+            media(type: ANIME, sort: SCORE_DESC, isAdult: false) {{ {MEDIA_FIELDS} }}
+          }}
+          upcoming: Page(page: 1, perPage: $perPage) {{
+            media(type: ANIME, status: NOT_YET_RELEASED, sort: POPULARITY_DESC, isAdult: false) {{ {MEDIA_FIELDS} }}
           }}
         }}
         """
-        data = self._request(query, {"search": term, "page": page, "perPage": min(per_page, 30)})["Page"]
+        data = self._request(query, {"perPage": min(per_page, 20), "season": season, "seasonYear": now.year})
+        return {
+            "trending": [normalize_media(item) for item in data["trending"]["media"]],
+            "current": [normalize_media(item) for item in data["current"]["media"]],
+            "top-rated": [normalize_media(item) for item in data["topRated"]["media"]],
+            "upcoming": [normalize_media(item) for item in data["upcoming"]["media"]],
+        }
+
+    def search(self, term: str, page: int = 1, per_page: int = 20, *, sort: str = "SEARCH_MATCH", format: str | None = None, status: str | None = None, season: str | None = None, genre: str | None = None) -> dict:
+        query = f"""
+        query ($search: String, $page: Int, $perPage: Int, $sort: [MediaSort], $format: MediaFormat, $status: MediaStatus, $season: MediaSeason, $genre: String) {{
+          Page(page: $page, perPage: $perPage) {{
+            pageInfo {{ currentPage lastPage hasNextPage total perPage }}
+            media(type: ANIME, search: $search, sort: $sort, format: $format, status: $status, season: $season, genre: $genre, isAdult: false) {{ {MEDIA_FIELDS} }}
+          }}
+        }}
+        """
+        variables = {"search": term or None, "page": page, "perPage": min(per_page, 30), "sort": sort, "format": format, "status": status, "season": season, "genre": genre}
+        data = self._request(query, variables)["Page"]
         return {"items": [normalize_media(item) for item in data["media"]], "page": data["pageInfo"]}
 
     def detail(self, media_id: int) -> dict:

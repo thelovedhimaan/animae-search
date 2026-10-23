@@ -39,14 +39,30 @@ class SearchView(APIView):
 
     def get(self, request):
         term = request.query_params.get("q", "").strip()
-        if len(term) < 2:
+        if term and len(term) < 2:
             return Response({"detail": "Use at least two characters."}, status=400)
         try:
             page = max(1, int(request.query_params.get("page", "1")))
         except ValueError:
             return Response({"detail": "Page must be a number."}, status=400)
+        choices = {
+            "sort": ({"relevance": "SEARCH_MATCH", "trending": "TRENDING_DESC", "score": "SCORE_DESC", "popular": "POPULARITY_DESC", "newest": "START_DATE_DESC"}, "relevance"),
+            "format": ({"tv": "TV", "movie": "MOVIE", "ova": "OVA", "ona": "ONA", "special": "SPECIAL"}, ""),
+            "status": ({"airing": "RELEASING", "finished": "FINISHED", "upcoming": "NOT_YET_RELEASED"}, ""),
+            "season": ({"winter": "WINTER", "spring": "SPRING", "summer": "SUMMER", "fall": "FALL"}, ""),
+        }
+        filters = {}
+        for name, (allowed, default) in choices.items():
+            value = request.query_params.get(name, default).lower()
+            if value not in allowed and value != "":
+                return Response({"detail": f"Unsupported {name}."}, status=400)
+            filters[name] = allowed.get(value)
+        filters["sort"] = filters["sort"] or "SEARCH_MATCH"
+        filters["genre"] = request.query_params.get("genre", "").strip()[:40] or None
+        if not term and not any(filters.get(key) for key in ("format", "status", "season", "genre")) and filters["sort"] == "SEARCH_MATCH":
+            filters["sort"] = "POPULARITY_DESC"
         try:
-            return Response(search_titles(term, page))
+            return Response(search_titles(term, page, **filters))
         except ProviderUnavailable as exc:
             return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
 

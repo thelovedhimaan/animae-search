@@ -1,5 +1,5 @@
 import { fallbackDiscovery } from "./fallback";
-import type { AnimeTitle, HomeDiscovery } from "./types";
+import type { AnimeTitle, HomeDiscovery, SearchFilters, SearchResponse } from "./types";
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -13,15 +13,17 @@ export async function getHomeDiscovery(): Promise<HomeDiscovery> {
   }
 }
 
-export async function searchAnime(query: string): Promise<AnimeTitle[]> {
-  if (!query.trim()) return [];
+export async function searchAnime(filters: SearchFilters): Promise<SearchResponse> {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => { if (value !== "" && value !== 1) params.set(key, String(value)); });
   try {
-    const response = await fetch(`${API_URL}/api/v1/search?q=${encodeURIComponent(query)}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${API_URL}/api/v1/search?${params}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
     if (!response.ok) throw new Error(`Search request failed: ${response.status}`);
-    const body = await response.json() as { results: AnimeTitle[] };
-    return body.results;
+    return response.json() as Promise<SearchResponse>;
   } catch {
-    return fallbackDiscovery.shelves.flatMap((shelf) => shelf.items).filter((item) => `${item.title} ${item.nativeTitle} ${item.genres.join(" ")}`.toLowerCase().includes(query.toLowerCase()));
+    const all = Array.from(new Map(fallbackDiscovery.shelves.flatMap((shelf) => shelf.items).map((item) => [item.id, item])).values());
+    const filtered = all.filter((item) => (!filters.q || `${item.title} ${item.nativeTitle} ${item.genres.join(" ")}`.toLowerCase().includes(filters.q.toLowerCase())) && (!filters.format || item.format.toLowerCase() === filters.format) && (!filters.status || item.status.toLowerCase().includes(filters.status)) && (!filters.season || item.season?.toLowerCase() === filters.season) && (!filters.genre || item.genres.some((genre) => genre.toLowerCase() === filters.genre.toLowerCase())));
+    return { results: filtered, page: { currentPage: 1, lastPage: 1, hasNextPage: false, total: filtered.length }, degraded: true };
   }
 }
 

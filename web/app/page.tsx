@@ -22,7 +22,7 @@ export default async function HomePage() {
 
     {discovery.degraded && <div className="degraded"><strong>Preview data active.</strong> Live catalogue sync will resume when the API is available.</div>}
 
-    <section className="section shelf"><div className="section-head"><div><span className="kicker">COMMUNITY PULSE</span><h2>Trending now</h2></div><Link href="/search?sort=TRENDING_DESC">View all <span>→</span></Link></div><div className="card-row">{trending.map((anime, index) => <AnimeCard anime={anime} rank={index + 1} key={anime.id} />)}</div></section>
+    {discovery.shelves.map((shelf, shelfIndex) => shelf.items.length > 0 && <section className="section shelf" key={shelf.key}><div className="section-head"><div><span className="kicker">{shelfIndex === 0 ? "COMMUNITY PULSE" : "CURATED DISCOVERY"}</span><h2>{shelf.title}</h2><p>{shelf.subtitle}</p></div><Link href={`/search?sort=${shelf.key === "top-rated" ? "score" : shelf.key === "upcoming" ? "popular&status=upcoming" : shelf.key === "current" ? "popular" : "trending"}`}>View all <span>→</span></Link></div><div className="card-row">{shelf.items.slice(0, 5).map((anime, index) => <AnimeCard anime={anime} rank={shelfIndex === 0 ? index + 1 : undefined} key={anime.id} />)}</div></section>)}
 
     <section className="section editorial"><span className="kicker">DISCOVER DIFFERENTLY</span><h2>More than a title search.</h2><div className="editorial-grid">{paths.map(([title, copy, label, color], index) => <article style={{ "--card-accent": color } as React.CSSProperties} key={title}><span>0{index + 1} / {label}</span><h3>{title}</h3><p>{copy}</p><Link href="/search">Explore <b>↗</b></Link></article>)}</div></section>
 
