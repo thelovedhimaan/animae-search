@@ -30,7 +30,7 @@ def discovery_home():
 def search_titles(term: str, page: int, **filters):
     signature = ":".join([term.casefold(), str(page), *(str(filters[key]) for key in sorted(filters))])
     digest = hashlib.sha256(signature.encode()).hexdigest()[:20]
-    result = _cached(f"search:{digest}:v2", 300, lambda: AniListClient().search(term, page, **filters))
+    result = _cached(f"search:{digest}:v3", 300, lambda: AniListClient().search(term, page, **filters))
     return {"results": result["items"], "page": result["page"]}
 
 

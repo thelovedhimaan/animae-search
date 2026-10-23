@@ -107,15 +107,29 @@ class AniListClient:
         }
 
     def search(self, term: str, page: int = 1, per_page: int = 20, *, sort: str = "SEARCH_MATCH", format: str | None = None, status: str | None = None, season: str | None = None, genre: str | None = None) -> dict:
+        declarations = ["$page: Int", "$perPage: Int", "$sort: [MediaSort]"]
+        arguments = ["type: ANIME", "sort: $sort", "isAdult: false"]
+        variables = {"page": page, "perPage": min(per_page, 30), "sort": sort}
+        optional_filters = {
+            "search": ("String", term or None),
+            "format": ("MediaFormat", format),
+            "status": ("MediaStatus", status),
+            "season": ("MediaSeason", season),
+            "genre": ("String", genre),
+        }
+        for name, (graphql_type, value) in optional_filters.items():
+            if value is not None:
+                declarations.append(f"${name}: {graphql_type}")
+                arguments.append(f"{name}: ${name}")
+                variables[name] = value
         query = f"""
-        query ($search: String, $page: Int, $perPage: Int, $sort: [MediaSort], $format: MediaFormat, $status: MediaStatus, $season: MediaSeason, $genre: String) {{
+        query ({", ".join(declarations)}) {{
           Page(page: $page, perPage: $perPage) {{
             pageInfo {{ currentPage lastPage hasNextPage total perPage }}
-            media(type: ANIME, search: $search, sort: $sort, format: $format, status: $status, season: $season, genre: $genre, isAdult: false) {{ {MEDIA_FIELDS} }}
+            media({", ".join(arguments)}) {{ {MEDIA_FIELDS} }}
           }}
         }}
         """
-        variables = {"search": term or None, "page": page, "perPage": min(per_page, 30), "sort": sort, "format": format, "status": status, "season": season, "genre": genre}
         data = self._request(query, variables)["Page"]
         return {"items": [normalize_media(item) for item in data["media"]], "page": data["pageInfo"]}
 
