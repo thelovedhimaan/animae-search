@@ -66,6 +66,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
     "DEFAULT_THROTTLE_RATES": {"anon": "120/min"},
+    "URL_FORMAT_OVERRIDE": None,
 }
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
