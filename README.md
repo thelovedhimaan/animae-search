@@ -10,6 +10,7 @@ The preview currently runs over HTTP on a credit-backed EC2 deployment in `ap-so
 
 - Responsive discovery homepage with trending, current-season, top-rated, and upcoming shelves
 - Shareable search URLs with title, genre, format, status, season, sort, and pagination controls
+- Character search and profiles with anime appearances and Japanese voice-actor credits
 - Live AniList GraphQL adapter for discovery, filtered search, and title details
 - Redis-backed response caching with an in-process development fallback
 - Curated frontend fallback data when the API or upstream provider is unavailable

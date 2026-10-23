@@ -1,5 +1,5 @@
 import { fallbackDiscovery } from "./fallback";
-import type { AnimeTitle, HomeDiscovery, SearchFilters, SearchResponse } from "./types";
+import type { AnimeCharacter, AnimeTitle, CharacterSearchResponse, HomeDiscovery, SearchFilters, SearchResponse } from "./types";
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -34,5 +34,28 @@ export async function getAnime(mediaId: number): Promise<AnimeTitle | undefined>
     return response.json() as Promise<AnimeTitle>;
   } catch {
     return fallbackDiscovery.shelves.flatMap((shelf) => shelf.items).find((item) => item.id === mediaId);
+  }
+}
+
+export async function searchCharacters(query: string, page: number): Promise<CharacterSearchResponse> {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  if (page > 1) params.set("page", String(page));
+  try {
+    const response = await fetch(`${API_URL}/api/v1/characters?${params}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!response.ok) throw new Error(`Character request failed: ${response.status}`);
+    return response.json() as Promise<CharacterSearchResponse>;
+  } catch {
+    return { results: [], page: { currentPage: page, hasNextPage: false, total: 0 }, source: "AniList", degraded: true };
+  }
+}
+
+export async function getCharacter(characterId: number): Promise<AnimeCharacter | undefined> {
+  try {
+    const response = await fetch(`${API_URL}/api/v1/characters/${characterId}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
+    if (!response.ok) throw new Error(`Character detail request failed: ${response.status}`);
+    return response.json() as Promise<AnimeCharacter>;
+  } catch {
+    return undefined;
   }
 }

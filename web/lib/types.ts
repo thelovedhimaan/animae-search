@@ -25,3 +25,8 @@ export type DiscoveryShelf = { key: string; title: string; subtitle: string; ite
 export type HomeDiscovery = { shelves: DiscoveryShelf[]; source: string; updatedAt: string; degraded?: boolean };
 export type SearchFilters = { q: string; page: number; sort: string; format: string; status: string; season: string; genre: string };
 export type SearchResponse = { results: AnimeTitle[]; page: { currentPage: number; lastPage?: number; hasNextPage: boolean; total?: number; perPage?: number }; degraded?: boolean };
+
+export type CharacterAppearance = { id: number; slug: string; title: string; coverImage: string; role: string };
+export type VoiceActor = { id: number; name: { full?: string; native?: string }; image?: { large?: string }; languageV2?: string; siteUrl?: string };
+export type AnimeCharacter = { id: number; slug: string; name: string; nativeName: string; alternativeNames: string[]; image: string; description: string; gender: string; age: string; favourites: number; sourceUrl: string; appearances: CharacterAppearance[]; voiceActors: VoiceActor[] };
+export type CharacterSearchResponse = { results: AnimeCharacter[]; page: { currentPage: number; lastPage?: number; hasNextPage: boolean; total?: number; perPage?: number }; source: string; degraded?: boolean };

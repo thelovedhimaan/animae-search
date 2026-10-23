@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .providers.anilist import ProviderUnavailable
-from .services import discovery_home, search_titles, title_detail
+from .services import character_detail, discovery_home, search_characters, search_titles, title_detail
 
 
 class HealthView(APIView):
@@ -74,5 +74,32 @@ class DetailView(APIView):
     def get(self, request, media_id: int):
         try:
             return Response(title_detail(media_id))
+        except ProviderUnavailable as exc:
+            return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
+
+
+class CharacterSearchView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        term = request.query_params.get("q", "").strip()[:80]
+        try:
+            page = max(1, int(request.query_params.get("page", "1")))
+        except ValueError:
+            return Response({"detail": "Page must be a number."}, status=400)
+        try:
+            return Response(search_characters(term, page))
+        except ProviderUnavailable as exc:
+            return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
+
+
+class CharacterDetailView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, character_id: int):
+        try:
+            return Response(character_detail(character_id))
         except ProviderUnavailable as exc:
             return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)

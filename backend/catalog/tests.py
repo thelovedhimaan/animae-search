@@ -41,3 +41,18 @@ class CatalogApiTests(TestCase):
     def test_invalid_filter_is_rejected(self):
         response = self.client.get("/api/v1/search?format=game")
         self.assertEqual(response.status_code, 400)
+
+    @patch("catalog.views.search_characters")
+    def test_character_search_contract(self, search):
+        search.return_value = {"results": [{"id": 1, "name": "Spike Spiegel"}], "page": {"currentPage": 1, "hasNextPage": False}, "source": "AniList"}
+        response = self.client.get("/api/v1/characters?q=spike")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["results"][0]["name"], "Spike Spiegel")
+        search.assert_called_once_with("spike", 1)
+
+    @patch("catalog.views.character_detail")
+    def test_character_detail_contract(self, detail):
+        detail.return_value = {"id": 1, "name": "Spike Spiegel", "appearances": []}
+        response = self.client.get("/api/v1/characters/1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["id"], 1)

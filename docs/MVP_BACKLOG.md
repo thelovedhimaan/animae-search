@@ -21,7 +21,8 @@
 - [x] Search with shareable URL-backed filters, sorting, and pagination.
 - [ ] Add search autocomplete and complete keyboard interaction review.
 - Title pages with external ratings, relationships, characters, staff, studios, trailers, and availability.
-- Character, person, studio, genre, theme, and season pages.
+- [x] Character index, search, pagination, profiles, anime appearances, and Japanese voice actors.
+- [ ] Person, studio, genre, theme, and season pages.
 - Responsive skeletons, empty states, provider degradation, and rate-limit messaging.
 - Sitemap, canonical links, structured data, social images, analytics, and consent.
 

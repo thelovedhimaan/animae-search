@@ -36,3 +36,13 @@ def search_titles(term: str, page: int, **filters):
 
 def title_detail(media_id: int):
     return _cached(f"title:{media_id}:v1", 3600, lambda: AniListClient().detail(media_id))
+
+
+def search_characters(term: str, page: int):
+    digest = hashlib.sha256(f"{term.casefold()}:{page}".encode()).hexdigest()[:20]
+    result = _cached(f"characters:{digest}:v1", 900, lambda: AniListClient().characters(term, page))
+    return {"results": result["items"], "page": result["page"], "source": "AniList"}
+
+
+def character_detail(character_id: int):
+    return _cached(f"character:{character_id}:v1", 3600, lambda: AniListClient().character_detail(character_id))

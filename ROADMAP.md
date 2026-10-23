@@ -31,8 +31,9 @@ and provider constraints change.
 **Status:** in progress. The responsive shell, four live discovery shelves,
 shareable search filters, sorting, pagination, title routes, caching, health
 checks, fallback states, and AWS preview are working. The current focus is title
-relationships, character and studio pages, regional availability, autocomplete,
-and stronger test and accessibility evidence.
+relationships, studio pages, regional availability, autocomplete, and stronger
+test and accessibility evidence. Character search, profiles, appearances, and
+Japanese voice-actor credits are now implemented.
 
 **Exit condition:** users can reliably discover and compare titles without AI.
 
