@@ -26,6 +26,10 @@ ANIME_TYPES = {
 
 TYPE_VALUES = " ".join(f"wd:{item}" for item in ANIME_TYPES)
 
+# Stable, well-documented records keep discovery useful when the public SPARQL
+# service is busy. Facts still refresh through Wikidata's lighter Action API.
+CURATED_DISCOVERY_IDS = ["Q155653", "Q101244908", "Q336012", "Q4006754", "Q5058811"]
+
 
 def _slug(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-") or "anime"
@@ -169,7 +173,7 @@ class WikimediaClient:
                 "prop": "imageinfo|info",
                 "inprop": "url",
                 "iiprop": "url|extmetadata",
-                "iiurlwidth": 900,
+                "iiurlwidth": 1200,
                 "titles": "|".join(f"File:{name}" for name in batch),
             })
             for page in (payload.get("query") or {}).get("pages", []):
@@ -215,7 +219,7 @@ class WikimediaClient:
             if include_detail:
                 related_ids += _item_ids(entity, "P674")
                 related_ids += _item_ids(entity, "P179") + _item_ids(entity, "P527") + _item_ids(entity, "P4969")
-            filename = _first_string(entity, "P18") or _first_string(entity, "P154")
+            filename = _first_string(entity, "P18")
             if filename:
                 filenames.append(filename)
         related = self._entities(related_ids)
@@ -223,7 +227,7 @@ class WikimediaClient:
             item_id: ((item.get("labels") or {}).get("en") or (item.get("labels") or {}).get("ja") or {}).get("value", item_id)
             for item_id, item in related.items()
         }
-        filenames += [_first_string(item, "P18") or _first_string(item, "P154") for item in related.values()]
+        filenames += [_first_string(item, "P18") for item in related.values()]
         media = self._commons_metadata(filenames)
         return [self._normalize(entity, labels, related, media, include_detail=include_detail) for entity in entities]
 
@@ -244,7 +248,7 @@ class WikimediaClient:
         types = _item_ids(entity, "P31")
         format_name = next((ANIME_TYPES[item] for item in types if item in ANIME_TYPES), "ANIME")
         status = "NOT_YET_RELEASED" if start and start > now else "FINISHED" if (end and end < now) or (published and not started and published <= now) else "RELEASING" if start else "UNKNOWN"
-        filename = _first_string(entity, "P18") or _first_string(entity, "P154")
+        filename = _first_string(entity, "P18")
         image = media.get(filename, {})
         description = ((entity.get("descriptions") or {}).get("en") or {}).get("value", "")
         result = {
@@ -308,7 +312,7 @@ class WikimediaClient:
             if not relation or not self._is_anime(relation):
                 continue
             relation_title = labels.get(relation_id, relation_id)
-            relation_filename = _first_string(relation, "P18") or _first_string(relation, "P154")
+            relation_filename = _first_string(relation, "P18")
             result["relations"].append({
                 "relation": "RELATED",
                 "id": _qid_number(relation_id),
@@ -357,9 +361,15 @@ class WikimediaClient:
         return [f"Q{item}" for item in (_qid_number((row.get("item") or {}).get("value")) for row in rows) if item]
 
     def discovery(self, per_page: int = 10) -> dict[str, list[dict]]:
-        popular_ids = self._popular_ids(max(per_page * 2, 20))
-        recent_ids = self._dated_ids(upcoming=False, limit=per_page)
-        upcoming_ids = self._dated_ids(upcoming=True, limit=per_page)
+        popular_ids = CURATED_DISCOVERY_IDS[:per_page]
+        try:
+            recent_ids = self._dated_ids(upcoming=False, limit=per_page)
+        except ProviderUnavailable:
+            recent_ids = []
+        try:
+            upcoming_ids = self._dated_ids(upcoming=True, limit=per_page)
+        except ProviderUnavailable:
+            upcoming_ids = []
         all_ids = list(dict.fromkeys(popular_ids + recent_ids + upcoming_ids))
         entities = self._entities(all_ids)
         normalized = {item["qid"]: item for item in self._normalize_many([entities[item] for item in all_ids if item in entities])}
@@ -480,7 +490,7 @@ class WikimediaClient:
                 continue
             anime_labels = anime.get("labels") or {}
             anime_title = (anime_labels.get("en") or anime_labels.get("ja") or {}).get("value", "Untitled")
-            anime_file = _first_string(anime, "P18") or _first_string(anime, "P154")
+            anime_file = _first_string(anime, "P18")
             result["appearances"].append({"id": _qid_number(anime_id), "slug": _slug(anime_title), "title": anime_title, "coverImage": related_media.get(anime_file, {}).get("url", ""), "role": "CHARACTER"})
         for actor_id in voice_ids:
             actor = related.get(actor_id)

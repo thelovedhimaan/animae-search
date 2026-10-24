@@ -8,13 +8,15 @@ import { AskAnime } from "@/components/AskAnime";
 import { Reviews } from "@/components/Reviews";
 import { WatchLinks } from "@/components/WatchLinks";
 import { getAnime } from "@/lib/api";
+import { artworkFor, usesEditorialArtwork } from "@/lib/artwork";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }): Promise<Metadata> {
   const { id, slug } = await params;
   const anime = await getAnime(Number(id));
   if (!anime) return { title: "Anime title", robots: { index: false } };
   const description = anime.description?.replace(/<[^>]+>/g, "").slice(0, 155);
-  return { title: `${anime.title} - cast, community rating and official links`, description, alternates: { canonical: `/anime/${id}/${slug}` }, openGraph: { type: "video.tv_show", url: `/anime/${id}/${slug}`, title: anime.title, description, images: anime.coverImage ? [{ url: anime.coverImage, alt: `${anime.title} artwork` }] : [] }, twitter: { card: "summary_large_image", title: anime.title, description, images: anime.coverImage ? [anime.coverImage] : [] } };
+  const artwork = artworkFor(anime);
+  return { title: `${anime.title} - cast, community rating and official links`, description, alternates: { canonical: `/anime/${id}/${slug}` }, openGraph: { type: "video.tv_show", url: `/anime/${id}/${slug}`, title: anime.title, description, images: artwork ? [{ url: artwork, alt: `${anime.title} editorial artwork` }] : [] }, twitter: { card: "summary_large_image", title: anime.title, description, images: artwork ? [artwork] : [] } };
 }
 
 export default async function AnimePage({ params }: { params: Promise<{ id: string; slug: string }> }) {
@@ -22,6 +24,8 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
   const mediaId = Number(id);
   const anime = await getAnime(mediaId);
   if (!anime) return <section className="section detail"><span className="kicker">TITLE RECORD</span><h1>Live title details are connecting.</h1><p>This title is temporarily unavailable from the catalogue provider.</p><Link href="/search">Return to search</Link></section>;
+  const artwork = artworkFor(anime);
+  const editorial = usesEditorialArtwork(anime);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.65-0-27-27.sslip.io";
   const titleUrl = `${siteUrl}/anime/${id}/${slug}`;
@@ -31,7 +35,7 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
     url: titleUrl,
     name: anime.title,
     alternateName: anime.nativeTitle || undefined,
-    image: anime.coverImage || undefined,
+    image: artwork || undefined,
     description: anime.description,
     genre: anime.genres,
     numberOfEpisodes: anime.episodes,
@@ -43,9 +47,9 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
 
   return <article className="title-page">
     <section className="title-overview" id="overview">
-      <div className="title-backdrop" style={{ backgroundImage: anime.bannerImage || anime.coverImage ? `linear-gradient(90deg, rgba(8,11,18,.96), rgba(8,11,18,.76), rgba(8,11,18,.93)), url(${anime.bannerImage || anime.coverImage})` : "radial-gradient(circle at 20% 30%, rgba(214,255,75,.14), transparent 34rem)" }} />
+      <div className="title-backdrop" style={{ backgroundImage: anime.bannerImage || artwork ? `linear-gradient(90deg, rgba(8,11,18,.96), rgba(8,11,18,.76), rgba(8,11,18,.93)), url(${anime.bannerImage || artwork})` : "radial-gradient(circle at 20% 30%, rgba(214,255,75,.14), transparent 34rem)" }} />
       <div className="title-shell">
-        <div><div className="title-poster">{anime.coverImage ? <Image src={anime.coverImage} alt={`${anime.title} artwork`} fill priority sizes="(max-width: 720px) 44vw, 18rem" /> : <div className="poster-placeholder"><span>{anime.title.slice(0, 2).toUpperCase()}</span><small>WIKIDATA RECORD</small></div>}</div>{anime.imageAttribution && <a className="media-credit" href={anime.imageAttribution.sourceUrl} target="_blank" rel="noreferrer">Image: {anime.imageAttribution.creator} · {anime.imageAttribution.license}</a>}</div>
+        <div><div className="title-poster">{artwork ? <Image src={artwork} alt={`${anime.title} editorial artwork`} fill priority sizes="(max-width: 720px) 44vw, 18rem" /> : <div className="poster-placeholder"><span>{anime.title.slice(0, 2).toUpperCase()}</span><small>WIKIDATA RECORD</small></div>}</div>{anime.imageAttribution && <a className="media-credit" href={anime.imageAttribution.sourceUrl} target="_blank" rel="noreferrer">Image: {anime.imageAttribution.creator} · {anime.imageAttribution.license}</a>}{editorial && <span className="media-credit">Original Anime Index editorial artwork</span>}</div>
         <div className="title-summary">
           <span className="kicker">{anime.format} · {anime.status}</span>
           <h1>{anime.title}</h1>
@@ -53,7 +57,7 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
           <p className="title-description">{anime.description}</p>
           <dl className="title-facts"><div><dt>Anime Index rating</dt><dd>{anime.averageScore ? `${(anime.averageScore / 10).toFixed(1)} (${anime.ratingCount ?? 0})` : "New"}</dd></div><div><dt>Episodes</dt><dd>{anime.episodes ?? "TBA"}</dd></div><div><dt>Season</dt><dd>{[anime.season, anime.seasonYear].filter(Boolean).join(" ") || "TBA"}</dd></div><div><dt>Source</dt><dd>{anime.sourceUrl ? <a href={anime.sourceUrl} target="_blank" rel="noreferrer">{anime.sourceLabel} ↗</a> : anime.sourceLabel}</dd></div></dl>
           <div className="tag-list">{anime.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
-          <div className="title-actions"><Link className="primary-action" href={`/search?q=${encodeURIComponent(anime.title)}`}>Find similar</Link><AnimeActions anime={{ mediaId, title: anime.title, slug: anime.slug, coverImage: anime.coverImage }} /></div>
+          <div className="title-actions"><Link className="primary-action" href={`/search?q=${encodeURIComponent(anime.title)}`}>Find similar</Link><AnimeActions anime={{ mediaId, title: anime.title, slug: anime.slug, coverImage: artwork }} /></div>
           {anime.textAttribution && <p className="text-credit">Summary adapted from <a href={anime.textAttribution.sourceUrl} target="_blank" rel="noreferrer">{anime.textAttribution.source}</a> under <a href={anime.textAttribution.licenseUrl} target="_blank" rel="noreferrer">{anime.textAttribution.license}</a>.</p>}
         </div>
       </div>

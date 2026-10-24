@@ -1,4 +1,5 @@
 import type { HomeDiscovery } from "./types";
+import { artworkFor } from "./artwork";
 
 const updatedAt = "2026-10-24T00:00:00Z";
 const openRecord = (id: number, title: string, nativeTitle: string, description: string, format: string, year: number, genres: string[]) => ({
@@ -8,7 +9,7 @@ const openRecord = (id: number, title: string, nativeTitle: string, description:
   title,
   nativeTitle,
   description,
-  coverImage: "",
+  coverImage: artworkFor({ id, coverImage: "" }),
   format,
   status: "FINISHED",
   seasonYear: year,

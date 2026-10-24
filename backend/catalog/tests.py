@@ -152,11 +152,11 @@ class WikimediaNormalizationTests(TestCase):
             "claims": {
                 "P31": [{"mainsnak": {"datavalue": {"value": {"id": "Q63952888"}}}}],
                 "P1113": [{"mainsnak": {"datavalue": {"value": {"amount": "+26", "unit": "1"}}}}],
-                "P154": [{"mainsnak": {"datavalue": {"value": "Cowboy Bebop.svg"}}}],
+                "P18": [{"mainsnak": {"datavalue": {"value": "Cowboy Bebop editorial.jpg"}}}],
             },
             "sitelinks": {"enwiki": {"title": "Cowboy Bebop"}},
         }
-        media = {"Cowboy Bebop.svg": {"url": "https://upload.wikimedia.org/example.svg", "creator": "Contributor", "license": "CC BY-SA 4.0", "sourceUrl": "https://commons.wikimedia.org/example"}}
+        media = {"Cowboy Bebop editorial.jpg": {"url": "https://upload.wikimedia.org/example.jpg", "creator": "Contributor", "license": "CC BY-SA 4.0", "sourceUrl": "https://commons.wikimedia.org/example"}}
         client = WikimediaClient()
         with patch.object(client, "_entities", return_value={}), patch.object(client, "_commons_metadata", return_value=media):
             result = client._normalize_many([entity])[0]
