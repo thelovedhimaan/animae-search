@@ -117,6 +117,7 @@ footer { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 2rem; align-i
 .card-credit, .media-credit, .text-credit { color: var(--muted); font-size: .56rem; line-height: 1.45; }
 .card-credit { display: block; overflow: hidden; padding: 0 .15rem; text-overflow: ellipsis; white-space: nowrap; text-decoration-color: rgba(255,255,255,.2); }
 .media-credit { display: block; margin-top: .55rem; text-decoration-color: rgba(255,255,255,.2); }
+.cast-voice { display: flex; align-items: center; gap: .4rem; }.cast-voice img { width: 1.5rem; height: 1.5rem; object-fit: cover; border-radius: 50%; }
 .text-credit { margin-top: 1rem; }
 .text-credit a { color: #c8d0da; }
 .title-facts a { color: var(--lime); text-decoration: none; }

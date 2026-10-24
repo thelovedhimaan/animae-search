@@ -360,6 +360,12 @@ class WikimediaClient:
             }
             existing[key] = entry
             anime.setdefault("cast", []).append(entry)
+        missing = [item["name"] for item in anime.get("cast") or [] if not item.get("image")]
+        for name, enrichment in self._kitsu_character_artwork(missing).items():
+            item = existing.get(self._match_key(name))
+            if item:
+                item["image"] = enrichment["image"]
+                item["externalUrl"] = item.get("externalUrl") or enrichment["url"]
 
     def _normalize(self, entity: dict, labels: dict[str, str], related: dict[str, dict], media: dict[str, dict], *, include_detail: bool) -> dict:
         item_id = entity.get("id", "")
