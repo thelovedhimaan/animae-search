@@ -17,7 +17,7 @@ const principles = [
 ];
 
 export default function AboutPage() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.13-232-238-146.sslip.io";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.65-0-27-27.sslip.io";
   const graph = { "@context": "https://schema.org", "@type": "AboutPage", name: "About Anime Index", url: `${siteUrl}/about`, description: "Anime Index data sources, attribution and editorial method.", isPartOf: { "@id": `${siteUrl}/#website` } };
   return <section className="section about-page">
     <span className="kicker">ABOUT ANIME INDEX</span>

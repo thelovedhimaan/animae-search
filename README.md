@@ -2,7 +2,7 @@
 
 Anime Index is a production-oriented anime discovery platform. The active rebuild combines a modern Next.js interface with a Django API and a normalized catalogue designed to support search, title and character pages, regional viewing availability, personal libraries, community features, and grounded AI.
 
-**Live AWS preview:** [Open Anime Index](https://anime-index.13-232-238-146.sslip.io)
+**Live AWS preview:** [Open Anime Index](https://anime-index.65-0-27-27.sslip.io)
 
 The preview runs over HTTPS on a credit-backed EC2 deployment in `ap-south-1`. Caddy manages the certificate and redirects the original EC2 address. A branded domain can replace the free `sslip.io` hostname later.
 
@@ -66,7 +66,7 @@ python manage.py runserver
 
 Copy [`.env.example`](./.env.example) for the available configuration variables. Secrets belong in local environment files, Jenkins credentials, or AWS Secrets Manager and must never be committed.
 
-For model-backed, multi-turn title conversations, create a Gemini API key in Google AI Studio and set `GEMINI_API_KEY`. The default `gemini-2.5-flash-lite` model has a free tier; limits and data-use terms depend on the account and may change. `OPENAI_API_KEY` remains an optional fallback. Without either key, the assistant continues to answer common questions from the current Wikimedia record instead of failing.
+For model-backed, multi-turn title conversations, create a Gemini API key in Google AI Studio and set `GEMINI_API_KEY`. The default `gemini-3.5-flash-lite` model has a free tier; limits and data-use terms depend on the account and may change. `OPENAI_API_KEY` remains an optional fallback. Without either key, the assistant continues to answer common questions from the current Wikimedia record instead of failing.
 
 Set `WIKIMEDIA_USER_AGENT` to a descriptive application name and working contact URL or email. Wikimedia requires identifiable API clients. The adapter caches responses, batches entity and media lookups, follows rate-limit responses, and exposes source and licence metadata to the interface.
 

@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getCharacter } from "@/lib/api";
@@ -16,7 +16,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   const character = await getCharacter(Number(id));
   if (!character) return <section className="section search-page"><span className="kicker">CHARACTER RECORD</span><h1>Character details are unavailable.</h1><p>The provider may be rate limited. Return to the index and try again.</p><Link className="primary-action" href="/characters">Back to characters</Link></section>;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.13-232-238-146.sslip.io";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.65-0-27-27.sslip.io";
   const graph = { "@context": "https://schema.org", "@type": "ProfilePage", mainEntity: { "@type": "Person", name: character.name, alternateName: character.nativeName || undefined, image: character.image || undefined, description: character.description || undefined, sameAs: character.sourceUrl ? [character.sourceUrl] : undefined }, breadcrumb: { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Characters", item: `${siteUrl}/characters` }, { "@type": "ListItem", position: 2, name: character.name }] } };
 
   return <section className="section character-detail">

@@ -6,9 +6,9 @@ Google states that AI Overviews and AI Mode use the normal Search eligibility an
 
 ## Owner setup
 
-1. Add `https://anime-index.13-232-238-146.sslip.io/` as a URL-prefix property in [Google Search Console](https://search.google.com/search-console/about).
+1. Add `https://anime-index.65-0-27-27.sslip.io/` as a URL-prefix property in [Google Search Console](https://search.google.com/search-console/about).
 2. Put the supplied HTML-tag value in `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` and rebuild the web image.
-3. Submit `https://anime-index.13-232-238-146.sslip.io/sitemap.xml` and inspect representative homepage, title, character, and about URLs.
+3. Submit `https://anime-index.65-0-27-27.sslip.io/sitemap.xml` and inspect representative homepage, title, character, and about URLs.
 4. Test title and character pages with Google's [Rich Results Test](https://search.google.com/test/rich-results).
 5. Register the site in [Bing Webmaster Tools](https://www.bing.com/webmasters/about), put its meta-tag value in `NEXT_PUBLIC_BING_SITE_VERIFICATION`, rebuild, and submit the same sitemap.
 6. Monitor indexed pages, crawl errors, Core Web Vitals, search queries, and structured-data warnings. Fix evidence-backed issues rather than adding keyword repetition.

@@ -139,7 +139,7 @@ Resources:
           GEMINI_API_KEY=$(aws ssm get-parameter --name '${GeminiParameterName}' --with-decryption --region '${AWS::Region}' --query Parameter.Value --output text 2>/dev/null || true)
           if [ -n "$GEMINI_API_KEY" ] && [ "$GEMINI_API_KEY" != "None" ]; then
             sed -i '/^GEMINI_API_KEY=/d;/^GEMINI_MODEL=/d' .env.aws
-            printf 'GEMINI_API_KEY=%s\nGEMINI_MODEL=gemini-2.5-flash-lite\n' "$GEMINI_API_KEY" >> .env.aws
+            printf 'GEMINI_API_KEY=%s\nGEMINI_MODEL=gemini-3.5-flash-lite\n' "$GEMINI_API_KEY" >> .env.aws
           fi
           unset GEMINI_API_KEY
           set -x
@@ -165,4 +165,3 @@ Outputs:
     Value: !Ref Instance
   SsmSessionCommand:
     Value: !Sub aws ssm start-session --target ${Instance} --region ${AWS::Region}
-

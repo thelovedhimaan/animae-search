@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AnimeActions } from "@/components/AnimeActions";
@@ -23,7 +23,7 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
   const anime = await getAnime(mediaId);
   if (!anime) return <section className="section detail"><span className="kicker">TITLE RECORD</span><h1>Live title details are connecting.</h1><p>This title is temporarily unavailable from the catalogue provider.</p><Link href="/search">Return to search</Link></section>;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.13-232-238-146.sslip.io";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.65-0-27-27.sslip.io";
   const titleUrl = `${siteUrl}/anime/${id}/${slug}`;
   const work = {
     "@type": anime.format === "MOVIE" ? "Movie" : "TVSeries",

@@ -100,7 +100,7 @@ class WikimediaClient:
         self.timeout = timeout
         self.user_agent = os.getenv(
             "WIKIMEDIA_USER_AGENT",
-            "AnimeIndex/0.2 (https://anime-index.13-232-238-146.sslip.io; contact via project website)",
+            "AnimeIndex/0.2 (https://anime-index.65-0-27-27.sslip.io; contact via project website)",
         )
 
     def _get(self, url: str, params: dict) -> dict:

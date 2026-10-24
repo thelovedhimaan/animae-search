@@ -337,7 +337,7 @@ class AnimeQuestionView(APIView):
             contents = [{"role": "model" if item["role"] == "assistant" else "user", "parts": [{"text": item["text"]}]} for item in history]
             contents.append({"role": "user", "parts": [{"text": question}]})
             try:
-                model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+                model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
                 response = httpx.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", params={"key": gemini_key}, json={"systemInstruction": {"parts": [{"text": f"{instruction}\nCatalogue record: {context}"}]}, "contents": contents, "generationConfig": {"temperature": 0.25, "maxOutputTokens": 500}}, timeout=20)
                 response.raise_for_status()
                 payload = response.json()

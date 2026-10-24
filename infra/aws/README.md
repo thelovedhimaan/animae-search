@@ -4,7 +4,7 @@ This stack runs the web app, Django API, PostgreSQL, and Redis on one Free Tier 
 
 ## Current preview
 
-- Application: [Anime Index on AWS](https://anime-index.13-232-238-146.sslip.io)
+- Application: [Anime Index on AWS](https://anime-index.65-0-27-27.sslip.io)
 - Region: `ap-south-1`
 - Stack: `anime-index-mvp`
 - Transport: HTTPS through Caddy with automatic certificate renewal
