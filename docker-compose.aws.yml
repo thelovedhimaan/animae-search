@@ -8,6 +8,7 @@ services:
         NEXT_PUBLIC_BING_SITE_VERIFICATION: ${NEXT_PUBLIC_BING_SITE_VERIFICATION:-}
     environment:
       API_URL: http://api:8000
+    ports: !reset []
     expose:
       - "3000"
     restart: unless-stopped
