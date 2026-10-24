@@ -4,13 +4,13 @@ Anime Index renders its important catalogue text on the server and exposes canon
 
 Google states that AI Overviews and AI Mode use the normal Search eligibility and SEO fundamentals. There is no separate AI schema or machine-readable AI file required. Useful textual content, crawl access, internal links, page experience, matching structured data, and clear source attribution are the durable approach.
 
-## Owner setup after HTTPS is active
+## Owner setup
 
-1. Set `NEXT_PUBLIC_SITE_URL` and `WEB_URL` to the canonical HTTPS origin and rebuild the web image.
-2. Verify the domain property in [Google Search Console](https://search.google.com/search-console/about).
-3. Submit `https://YOUR_DOMAIN/sitemap.xml` and inspect representative homepage, title, character, and about URLs.
+1. Add `https://anime-index.13-232-238-146.sslip.io/` as a URL-prefix property in [Google Search Console](https://search.google.com/search-console/about).
+2. Put the supplied HTML-tag value in `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` and rebuild the web image.
+3. Submit `https://anime-index.13-232-238-146.sslip.io/sitemap.xml` and inspect representative homepage, title, character, and about URLs.
 4. Test title and character pages with Google's [Rich Results Test](https://search.google.com/test/rich-results).
-5. Register the site in [Bing Webmaster Tools](https://www.bing.com/webmasters/about) and submit the same sitemap.
+5. Register the site in [Bing Webmaster Tools](https://www.bing.com/webmasters/about), put its meta-tag value in `NEXT_PUBLIC_BING_SITE_VERIFICATION`, rebuild, and submit the same sitemap.
 6. Monitor indexed pages, crawl errors, Core Web Vitals, search queries, and structured-data warnings. Fix evidence-backed issues rather than adding keyword repetition.
 
 Search engines decide crawling, indexing, and ranking. These changes make the site understandable and eligible; they do not guarantee a specific position.

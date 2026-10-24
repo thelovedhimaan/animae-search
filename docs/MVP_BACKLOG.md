@@ -53,5 +53,5 @@
 - Activate OpenSearch or Kafka only when their decision gates are met.
 - AWS production infrastructure, backup restoration exercise, alarms, runbooks, and incident drills.
 - Public architecture case study with measured accessibility, performance, reliability, and search quality.
-- Stable domain, HTTPS certificate, redirects, and security-header verification.
+- [x] HTTPS certificate, HTTP redirects, and security headers. A branded domain remains optional.
 

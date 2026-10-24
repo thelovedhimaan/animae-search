@@ -3,8 +3,8 @@
 > **Deployment sequence:** the live MVP currently uses the smaller single-EC2
 > CloudFormation stack documented in [`infra/aws/README.md`](../infra/aws/README.md).
 > This Jenkins/ECR/ECS design is the target production pipeline. It will be
-> activated after the public discovery experience is substantially complete;
-> the stable domain and HTTPS rollout belongs to the same later deployment phase.
+> activated after the public discovery experience is substantially complete.
+> The current EC2 preview already uses Caddy HTTPS; a branded domain remains a later step.
 
 ## Required Jenkins capabilities
 

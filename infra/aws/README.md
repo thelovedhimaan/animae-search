@@ -4,12 +4,12 @@ This stack runs the web app, Django API, PostgreSQL, and Redis on one Free Tier 
 
 ## Current preview
 
-- Application: [Anime Index on AWS](http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com)
+- Application: [Anime Index on AWS](https://anime-index.13-232-238-146.sslip.io)
 - Region: `ap-south-1`
 - Stack: `anime-index-mvp`
-- Transport: HTTP during the product-development preview
+- Transport: HTTPS through Caddy with automatic certificate renewal
 
-A stable domain and HTTPS are the next infrastructure improvement. They are deliberately scheduled after the core discovery flows are developed so the next deployment work promotes a substantially more useful application.
+The free `sslip.io` hostname resolves directly to the instance IP. A branded domain can replace it later without changing the application architecture.
 
 The deployment is intended for the MVP while AWS promotional credits are active. It has a single failure domain and should not be described as highly available. Data is stored on the instance's encrypted EBS volume and disappears when the CloudFormation stack is deleted.
 
@@ -40,7 +40,7 @@ To update manually before the Jenkins controller exists:
 ```bash
 cd /opt/anime-index/app
 sudo git pull --ff-only origin master
-sudo docker compose --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml up --build --detach
+sudo docker compose --profile https --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml up --build --detach
 ```
 
 Delete the stack before credits expire to stop instance, storage, and public IPv4 usage:

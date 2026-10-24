@@ -75,9 +75,11 @@ provider keys and an approved evaluation corpus.
 - Security review, rate limiting, backups, and recovery documentation
 - Public architecture case study and performance report
 
-**Status:** a credit-backed HTTP preview is live on AWS. A stable domain, HTTPS,
-managed deployment pipeline, production monitoring, and recovery evidence remain
-deferred until the application has completed its core product milestones.
+**Status:** a credit-backed HTTPS preview is live on AWS with automatic
+certificate renewal and HTTP redirects. The Jenkins pipeline, health checks,
+search metadata, sitemap, and structured data are present. A branded domain,
+provider credentials, Search Console verification, monitoring, and recovery
+evidence remain owner or production operations.
 
 **Exit condition:** deployed application with operational evidence and a public
 engineering case study.

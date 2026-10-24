@@ -2,9 +2,9 @@
 
 Anime Index is a production-oriented anime discovery platform. The active rebuild combines a modern Next.js interface with a Django API and a normalized catalogue designed to support search, title and character pages, regional viewing availability, personal libraries, community features, and grounded AI.
 
-**Live AWS preview:** [Open Anime Index](http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com)
+**Live AWS preview:** [Open Anime Index](https://anime-index.13-232-238-146.sslip.io)
 
-The preview currently runs over HTTP on a credit-backed EC2 deployment in `ap-south-1`. A stable domain and HTTPS are the next deployment improvement, after the discovery experience has grown beyond the current foundation.
+The preview runs over HTTPS on a credit-backed EC2 deployment in `ap-south-1`. Caddy manages the certificate and redirects the original EC2 address. A branded domain can replace the free `sslip.io` hostname later.
 
 ## What works now
 
@@ -96,7 +96,7 @@ The repository root [`Jenkinsfile`](./Jenkinsfile) performs these checks inside 
 
 ## Deployment status
 
-The current MVP is deployed through the [`anime-index-mvp`](./infra/aws/README.md) CloudFormation stack on one EC2 instance. This keeps infrastructure cost and operational overhead low while product behavior is still changing quickly. The domain, TLS certificate, load balancer, managed data services, and ECS promotion path are intentionally deferred until the core discovery flows are useful and stable.
+The current MVP is deployed through the [`anime-index-mvp`](./infra/aws/README.md) CloudFormation stack on one EC2 instance, with Caddy providing HTTPS. This keeps infrastructure cost and operational overhead low while product behavior is still changing quickly. A branded domain, managed data services, and the ECS promotion path remain later scaling steps.
 
 The next product milestone is the rest of the reliable discovery foundation: complete title and relationship data, character and studio pages, regional availability, autocomplete, and clearer loading and provider-degradation states. Accounts, community, and grounded AI build on that foundation.
 
