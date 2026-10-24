@@ -19,17 +19,17 @@
 - [x] Homepage shelves for trending, current season, top rated, and upcoming titles.
 - [ ] Add recently updated and legally free shelves when their source and regional rules are defined.
 - [x] Search with shareable URL-backed filters, sorting, and pagination.
-- [ ] Add search autocomplete and complete keyboard interaction review.
-- Title pages with external ratings, relationships, characters, staff, studios, trailers, and availability.
+- [x] Add search autocomplete and keyboard interaction.
+- [x] Title pages with attributed ratings, relationships, characters, studios, trailers, and official catalogue links.
 - [x] Character index, search, pagination, profiles, anime appearances, and Japanese voice actors.
 - [ ] Person, studio, genre, theme, and season pages.
 - Responsive skeletons, empty states, provider degradation, and rate-limit messaging.
-- Sitemap, canonical links, structured data, social images, analytics, and consent.
+- [x] Sitemap, canonical links, structured title data, and social metadata.
 
 ## P2: accounts and personalization
 
-- Google OAuth, sessions, profile privacy, account export, and deletion.
-- Watchlist, watching, completed, paused, dropped, favorites, rating, and notes.
+- [x] Google OAuth code path, signed sessions, account export, and deletion. Credentials and HTTPS callback remain deployment configuration.
+- [x] Watch later, watching, completed, paused, dropped, likes, ratings, reviews, and visit history.
 - Recommendation feedback and explanation components.
 - Notification preferences for episodes, seasons, and verified availability changes.
 

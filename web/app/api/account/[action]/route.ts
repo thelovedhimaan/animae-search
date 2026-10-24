@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const allowed = new Set(["register", "login", "logout", "me"]);
+const allowed = new Set(["register", "login", "logout", "me", "data"]);
 
 async function proxy(request: NextRequest, context: { params: Promise<{ action: string }> }) {
   const { action } = await context.params;
@@ -30,3 +30,4 @@ async function proxy(request: NextRequest, context: { params: Promise<{ action: 
 
 export const GET = proxy;
 export const POST = proxy;
+export const DELETE = proxy;

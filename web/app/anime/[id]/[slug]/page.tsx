@@ -7,6 +7,15 @@ import { AskAnime } from "@/components/AskAnime";
 import { Reviews } from "@/components/Reviews";
 import { WatchLinks } from "@/components/WatchLinks";
 import { getAnime } from "@/lib/api";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }): Promise<Metadata> {
+  const { id, slug } = await params;
+  const anime = await getAnime(Number(id));
+  if (!anime) return { title: "Anime title" };
+  const description = anime.description?.replace(/<[^>]+>/g, "").slice(0, 155);
+  return { title: anime.title, description, alternates: { canonical: `/anime/${id}/${slug}` }, openGraph: { title: anime.title, description, images: anime.coverImage ? [anime.coverImage] : [] } };
+}
 
 export default async function AnimePage({ params }: { params: Promise<{ id: string; slug: string }> }) {
   const { id } = await params;
@@ -32,5 +41,6 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
     </section>
     <nav className="title-section-nav" aria-label="Title page sections"><a href="#overview">Overview</a><a href="#cast">Cast</a><a href="#related">Related</a><a href="#watch">Where to watch</a><a href="#ask">Ask Anime Index</a><a href="#reviews">Reviews</a></nav>
     <div className="title-content"><AnimeCast cast={anime.cast ?? []} studios={anime.studios ?? []} /><AnimeRelations relations={anime.relations ?? []} trailer={anime.trailer} /><WatchLinks links={anime.watchLinks ?? []} /><AskAnime mediaId={mediaId} anime={anime} /><Reviews mediaId={mediaId} title={anime.title} /></div>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "TVSeries", name: anime.title, alternateName: anime.nativeTitle || undefined, image: anime.coverImage, description: anime.description, genre: anime.genres, numberOfEpisodes: anime.episodes, aggregateRating: anime.averageScore ? { "@type": "AggregateRating", ratingValue: anime.averageScore / 10, bestRating: 10 } : undefined }) }} />
   </article>;
 }

@@ -3,8 +3,12 @@ import { Header } from "@/components/Header";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com"),
   title: { default: "Anime Index - Find your next world", template: "%s | Anime Index" },
-  description: "Search anime, characters, ratings, relationships and verified viewing options in one place."
+  description: "Search anime, characters, ratings, relationships and verified viewing options in one place.",
+  openGraph: { type: "website", siteName: "Anime Index", title: "Anime Index - Find your next world", description: "Anime discovery, personal lists, reviews, cast, relationships, official viewing links and contextual AI." },
+  twitter: { card: "summary_large_image" },
+  robots: { index: true, follow: true }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

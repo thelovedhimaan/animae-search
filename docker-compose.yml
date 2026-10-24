@@ -26,6 +26,10 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3000/api/account/google/callback}
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
     ports: ["8000:8000"]
     depends_on:
       db:

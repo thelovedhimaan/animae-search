@@ -100,6 +100,30 @@ class CatalogApiTests(TestCase):
         self.client.post("/api/v1/library", payload, format="json")
         self.assertEqual(self.client.get("/api/v1/library").json()["watch_later"], [])
 
+    def test_watch_statuses_are_mutually_exclusive(self):
+        self.client.post("/api/v1/account/register", {"email": "status@example.com", "password": "strong-pass"}, format="json")
+        base = {"mediaId": 1, "title": "Cowboy Bebop", "slug": "cowboy-bebop"}
+        self.client.post("/api/v1/library", {**base, "kind": "watching"}, format="json")
+        self.client.post("/api/v1/library", {**base, "kind": "completed"}, format="json")
+        library = self.client.get("/api/v1/library").json()
+        self.assertEqual(library["watching"], [])
+        self.assertEqual(library["completed"][0]["title"], "Cowboy Bebop")
+
+    def test_user_can_export_and_delete_account(self):
+        self.client.post("/api/v1/account/register", {"email": "privacy@example.com", "displayName": "Private Fan", "password": "strong-pass"}, format="json")
+        exported = self.client.get("/api/v1/account/data")
+        self.assertEqual(exported.status_code, 200)
+        self.assertEqual(exported.json()["profile"]["email"], "privacy@example.com")
+        self.assertEqual(self.client.delete("/api/v1/account/data").status_code, 204)
+        self.assertEqual(self.client.get("/api/v1/account/me").status_code, 401)
+
+    @patch("catalog.views.search_titles")
+    def test_search_suggestions_are_limited(self, search):
+        search.return_value = {"results": [{"id": index, "title": f"Anime {index}"} for index in range(10)]}
+        response = self.client.get("/api/v1/search/suggest?q=anime")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["results"]), 6)
+
     @patch("catalog.views.search_characters")
     def test_character_search_contract(self, search):
         search.return_value = {"results": [{"id": 1, "name": "Spike Spiegel"}], "page": {"currentPage": 1, "hasNextPage": False}, "source": "AniList"}

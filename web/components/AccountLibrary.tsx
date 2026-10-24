@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type Item = { mediaId: number; title: string; slug?: string; coverImage?: string; rating?: number };
-type Library = { visited: Item[]; liked: Item[]; watch_later: Item[]; reviewed: Item[] };
-const sections: [keyof Library, string][] = [["watch_later", "Watch later"], ["liked", "Liked"], ["reviewed", "Reviewed"], ["visited", "Recently visited"]];
+type Library = { visited: Item[]; liked: Item[]; watch_later: Item[]; watching: Item[]; completed: Item[]; paused: Item[]; dropped: Item[]; reviewed: Item[] };
+const sections: [keyof Library, string][] = [["watching", "Watching"], ["watch_later", "Watch later"], ["completed", "Completed"], ["liked", "Liked"], ["reviewed", "Reviewed"], ["paused", "Paused"], ["dropped", "Dropped"], ["visited", "Recently visited"]];
 
 export function AccountLibrary() {
   const [library, setLibrary] = useState<Library | null>(null);

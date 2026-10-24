@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
 import os
+from urllib.parse import urlencode
 
 import httpx
 
 from django.contrib.auth import authenticate, get_user_model
 from django.conf import settings
 from django.core import signing
+from django.shortcuts import redirect
 from django.db import connections
 from django.db.utils import OperationalError
 from rest_framework import status
@@ -106,6 +108,21 @@ class SearchView(APIView):
             return Response({"detail": str(exc), "code": "provider_unavailable"}, status=503)
 
 
+class SuggestView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        term = request.query_params.get("q", "").strip()[:80]
+        if len(term) < 2:
+            return Response({"results": []})
+        try:
+            payload = search_titles(term, 1, sort="SEARCH_MATCH", format=None, status=None, season=None, genre=None)
+            return Response({"results": payload.get("results", [])[:6]})
+        except ProviderUnavailable:
+            return Response({"results": []})
+
+
 class DetailView(APIView):
     authentication_classes = []
     permission_classes = []
@@ -176,6 +193,43 @@ class LoginView(APIView):
         return set_account_cookie(Response({"user": account_payload(user)}), user)
 
 
+class GoogleStartView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+        callback = os.getenv("GOOGLE_CALLBACK_URL", "").strip()
+        if not client_id or not callback:
+            return Response({"detail": "Google sign-in is not configured."}, status=503)
+        state = signing.dumps({"next": "/account"}, salt="anime-google-oauth")
+        query = urlencode({"client_id": client_id, "redirect_uri": callback, "response_type": "code", "scope": "openid email profile", "state": state, "prompt": "select_account"})
+        return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{query}")
+
+
+class GoogleCallbackView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        web_url = os.getenv("WEB_URL", "http://localhost:3000").rstrip("/")
+        try:
+            signing.loads(request.query_params.get("state", ""), salt="anime-google-oauth", max_age=600)
+            token = httpx.post("https://oauth2.googleapis.com/token", data={"code": request.query_params.get("code", ""), "client_id": os.getenv("GOOGLE_CLIENT_ID", ""), "client_secret": os.getenv("GOOGLE_CLIENT_SECRET", ""), "redirect_uri": os.getenv("GOOGLE_CALLBACK_URL", ""), "grant_type": "authorization_code"}, timeout=15)
+            token.raise_for_status()
+            profile = httpx.get("https://openidconnect.googleapis.com/v1/userinfo", headers={"Authorization": f"Bearer {token.json()['access_token']}"}, timeout=15)
+            profile.raise_for_status(); data = profile.json()
+            email = str(data.get("email", "")).lower()
+            if not email or not data.get("email_verified"):
+                raise ValueError("Google email is not verified")
+            User = get_user_model()
+            user, _ = User.objects.get_or_create(username=email, defaults={"email": email, "first_name": str(data.get("name", ""))[:80]})
+            response = redirect(f"{web_url}/account?google=success")
+            return set_account_cookie(response, user)
+        except (signing.BadSignature, signing.SignatureExpired, httpx.HTTPError, KeyError, ValueError):
+            return redirect(f"{web_url}/account?google=error")
+
+
 class AccountView(APIView):
     authentication_classes = []
     permission_classes = []
@@ -192,6 +246,30 @@ class LogoutView(APIView):
     permission_classes = []
 
     def post(self, request):
+        response = Response(status=204)
+        response.delete_cookie(AUTH_COOKIE, path="/", samesite="Lax")
+        return response
+
+
+class AccountDataView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in required."}, status=401)
+        return Response({
+            "profile": account_payload(user),
+            "library": [{"mediaId": item.media_id, "kind": item.kind, "title": item.title, "slug": item.slug, "updatedAt": item.updated_at.isoformat()} for item in LibraryEntry.objects.filter(user=user)],
+            "reviews": [{"mediaId": item.media_id, "title": item.title, "rating": item.rating, "body": item.body, "containsSpoilers": item.contains_spoilers, "updatedAt": item.updated_at.isoformat()} for item in Review.objects.filter(user=user)],
+        })
+
+    def delete(self, request):
+        user = signed_in_user(request)
+        if user is None:
+            return Response({"detail": "Sign in required."}, status=401)
+        user.delete()
         response = Response(status=204)
         response.delete_cookie(AUTH_COOKIE, path="/", samesite="Lax")
         return response
@@ -302,7 +380,7 @@ class LibraryView(APIView):
         user = signed_in_user(request)
         if user is None:
             return Response({"detail": "Sign in required."}, status=401)
-        groups = {kind: [] for kind in ("visited", "liked", "watch_later")}
+        groups = {kind: [] for kind in LibraryEntry.Kind.values}
         for item in LibraryEntry.objects.filter(user=user)[:150]:
             groups[item.kind].append({"mediaId": item.media_id, "title": item.title, "slug": item.slug, "coverImage": item.cover_image, "updatedAt": item.updated_at.isoformat()})
         groups["reviewed"] = [{"mediaId": item.media_id, "title": item.title, "rating": item.rating, "updatedAt": item.updated_at.isoformat()} for item in Review.objects.filter(user=user)[:50]]
@@ -324,5 +402,7 @@ class LibraryView(APIView):
         if not active:
             LibraryEntry.objects.filter(**lookup).delete()
             return Response({"active": False})
+        if kind in {LibraryEntry.Kind.WATCHING, LibraryEntry.Kind.COMPLETED, LibraryEntry.Kind.PAUSED, LibraryEntry.Kind.DROPPED}:
+            LibraryEntry.objects.filter(user=user, media_id=media_id, kind__in=[LibraryEntry.Kind.WATCHING, LibraryEntry.Kind.COMPLETED, LibraryEntry.Kind.PAUSED, LibraryEntry.Kind.DROPPED]).exclude(kind=kind).delete()
         LibraryEntry.objects.update_or_create(**lookup, defaults={"title": str(request.data.get("title", "Anime"))[:240], "slug": str(request.data.get("slug", media_id))[:240], "cover_image": str(request.data.get("coverImage", ""))[:500]})
         return Response({"active": True})

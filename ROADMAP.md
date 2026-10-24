@@ -28,12 +28,12 @@ and provider constraints change.
 - Accessibility and performance budgets
 - Unit, integration, and end-to-end test foundations
 
-**Status:** in progress. The responsive shell, four live discovery shelves,
-shareable search filters, sorting, pagination, title routes, caching, health
-checks, fallback states, and AWS preview are working. The current focus is title
-relationships, studio pages, regional availability, autocomplete, and stronger
-test and accessibility evidence. Character search, profiles, appearances, and
-Japanese voice-actor credits are now implemented.
+**Status:** core foundation complete. The responsive shell, discovery shelves,
+shareable filters, pagination, keyboard autocomplete, rich title routes, cast,
+relationships, trailers, character profiles, caching, fallback states, SEO
+metadata, and AWS preview are implemented. Studio landing pages and fully
+verified regional availability remain catalogue expansions because AniList does
+not supply complete regional rights data.
 
 **Exit condition:** users can reliably discover and compare titles without AI.
 
@@ -44,9 +44,10 @@ Japanese voice-actor credits are now implemented.
 - Recommendation explanations and feedback
 - Seasonal discovery and notification preferences
 
-**Status:** started. Native email/password accounts, signed sessions, and title
-ratings/reviews are implemented. Google OAuth, lists, history, preferences, and
-recommendation feedback remain.
+**Status:** usable foundation complete. Native accounts, signed sessions, Google
+OAuth integration, data export/deletion, reviews, likes, watch-later, viewing
+history, and watching/completed/paused/dropped states are implemented. Google
+credentials and HTTPS callback configuration are external setup.
 
 **Exit condition:** recommendations improve using explicit user signals.
 
@@ -60,6 +61,11 @@ recommendation feedback remain.
 
 **Exit condition:** AI features pass agreed relevance, citation, latency, cost,
 and spoiler-safety thresholds.
+
+**Status:** title-level multi-turn Q&A is implemented with AniList context,
+Gemini as the preferred model, optional OpenAI fallback, bounded history, and a
+deterministic catalogue fallback. Full vector RAG and automated evaluation need
+provider keys and an approved evaluation corpus.
 
 ## Phase 4 - Production launch
 

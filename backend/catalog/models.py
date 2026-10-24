@@ -81,6 +81,10 @@ class LibraryEntry(models.Model):
         VISITED = "visited", "Visited"
         LIKED = "liked", "Liked"
         WATCH_LATER = "watch_later", "Watch later"
+        WATCHING = "watching", "Watching"
+        COMPLETED = "completed", "Completed"
+        PAUSED = "paused", "Paused"
+        DROPPED = "dropped", "Dropped"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="anime_library", on_delete=models.CASCADE)
     media_id = models.PositiveIntegerField(db_index=True)
