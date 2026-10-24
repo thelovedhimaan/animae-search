@@ -177,16 +177,18 @@ class WikimediaClient:
         return {title: result for title, result in zip(unique, results) if result}
 
     def _kitsu_character(self, name: str) -> dict:
-        payload = self._kitsu_get("characters", {"filter[name]": name, "page[limit]": 3})
+        aliases = {"Goku": "Gokuu Son", "Vegito": "Vegetto", "Gotenks": "Gotenks"}
+        lookup = aliases.get(name, name)
+        payload = self._kitsu_get("characters", {"filter[name]": lookup, "page[limit]": 10})
         candidates = payload.get("data") or []
-        target = self._match_key(name)
-        item = next((candidate for candidate in candidates if self._match_key(str((candidate.get("attributes") or {}).get("canonicalName") or "")) == target), None) or (candidates[0] if candidates else None)
+        target = self._match_key(lookup)
+        item = next((candidate for candidate in candidates if self._match_key(str((candidate.get("attributes") or {}).get("canonicalName") or "")) == target), None)
         if not item:
             return {}
         attrs = item.get("attributes") or {}
         artwork = attrs.get("image") or {}
         return {
-            "image": artwork.get("large") or artwork.get("medium") or artwork.get("original") or "",
+            "image": artwork.get("original") or artwork.get("large") or artwork.get("medium") or "",
             "url": f"https://kitsu.app/characters/{item.get('id')}",
         }
 

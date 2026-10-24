@@ -19,8 +19,8 @@ export function SafePortrait({ src, alt, fallback, className, size }: SafePortra
   }
 
   if (size) {
-    return <Image className={className} src={src} alt={alt} width={size} height={size} onError={() => setFailed(true)} />;
+    return <Image className={className} src={src} alt={alt} width={size} height={size} unoptimized onError={() => setFailed(true)} />;
   }
 
-  return <Image className={className} src={src} alt={alt} fill sizes="7rem" onError={() => setFailed(true)} />;
+  return <Image className={className} src={src} alt={alt} fill sizes="7rem" unoptimized onError={() => setFailed(true)} />;
 }
