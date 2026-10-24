@@ -85,6 +85,7 @@ class CatalogApiTests(TestCase):
         self.assertEqual(self.client.delete("/api/v1/reviews/1").status_code, 204)
         self.assertEqual(self.client.get("/api/v1/reviews/1").json()["reviews"], [])
 
+    @patch.dict("os.environ", {"GEMINI_API_KEY": "", "OPENAI_API_KEY": ""})
     @patch("catalog.views.title_detail")
     def test_anime_question_uses_grounded_catalogue_answer(self, detail):
         detail.return_value = {"title": "Cowboy Bebop", "episodes": 26, "sourceLabel": "Wikidata", "watchLinks": []}
