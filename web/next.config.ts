@@ -13,7 +13,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "upload.wikimedia.org" },
-      { protocol: "https", hostname: "commons.wikimedia.org" }
+      { protocol: "https", hostname: "commons.wikimedia.org" },
+      { protocol: "https", hostname: "media.kitsu.app" }
     ]
   }
 };

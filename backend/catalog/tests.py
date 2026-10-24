@@ -158,7 +158,7 @@ class WikimediaNormalizationTests(TestCase):
         }
         media = {"Cowboy Bebop editorial.jpg": {"url": "https://upload.wikimedia.org/example.jpg", "creator": "Contributor", "license": "CC BY-SA 4.0", "sourceUrl": "https://commons.wikimedia.org/example"}}
         client = WikimediaClient()
-        with patch.object(client, "_entities", return_value={}), patch.object(client, "_commons_metadata", return_value=media):
+        with patch.object(client, "_entities", return_value={}), patch.object(client, "_commons_metadata", return_value=media), patch.object(client, "_kitsu_artwork", return_value={}):
             result = client._normalize_many([entity])[0]
         self.assertEqual(result["id"], 101244908)
         self.assertEqual(result["format"], "TV")

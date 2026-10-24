@@ -68,7 +68,7 @@ Copy [`.env.example`](./.env.example) for the available configuration variables.
 
 For model-backed, multi-turn title conversations, create a Gemini API key in Google AI Studio and set `GEMINI_API_KEY`. The default `gemini-3.5-flash-lite` model has a free tier; limits and data-use terms depend on the account and may change. `OPENAI_API_KEY` remains an optional fallback. Without either key, the assistant continues to answer common questions from the current Wikimedia record instead of failing.
 
-Set `WIKIMEDIA_USER_AGENT` to a descriptive application name and working contact URL or email. Wikimedia requires identifiable API clients. The adapter caches responses, batches entity and media lookups, follows rate-limit responses, and exposes source and licence metadata to the interface.
+Set `WIKIMEDIA_USER_AGENT` to a descriptive application name and working contact URL or email. Wikimedia requires identifiable API clients. The adapter caches responses, batches entity and media lookups, follows rate-limit responses, and exposes source and licence metadata to the interface. When Wikimedia has no reusable image, the API enriches title and character records through Kitsu's public, no-key catalogue while retaining Wikidata as the factual source.
 
 For Google sign-in, create a Google OAuth web client and set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL`. Register the exact callback shown in `.env.example` locally; in production use `https://YOUR_DOMAIN/api/account/google/callback`. Set `WEB_URL` and `NEXT_PUBLIC_SITE_URL` to the same public HTTPS origin.
 

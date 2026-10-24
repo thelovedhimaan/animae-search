@@ -26,7 +26,7 @@ export type AnimeTitle = {
   mediaCredits?: { creator: string; credit?: string; license: string; licenseUrl?: string; sourceUrl: string }[];
   watchLinks?: { site: string; url: string; icon?: string; color?: string }[];
   officialLinks?: { site: string; url: string }[];
-  cast?: { id: number; name: string; nativeName?: string; image: string; role: string; voiceActor?: { id: number; name: string; image: string } | null }[];
+  cast?: { id: number; name: string; nativeName?: string; image: string; role: string; externalUrl?: string; voiceActor?: { id: number; name: string; image: string } | null }[];
   studios?: { id: number; name: string; url?: string }[];
   relations?: { relation: string; id: number; title: string; format: string; coverImage: string }[];
   trailer?: { id: string; site: string; thumbnail?: string } | null;

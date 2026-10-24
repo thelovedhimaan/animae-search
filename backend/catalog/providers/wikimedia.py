@@ -1,6 +1,7 @@
 import html
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from urllib.parse import quote
 
@@ -13,6 +14,7 @@ WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+KITSU_API = "https://kitsu.io/api/edge"
 
 # Concrete work types avoid pulling manga, franchises, and the general anime concept.
 ANIME_TYPES = {
@@ -120,6 +122,74 @@ class WikimediaClient:
             return response.json()
         except (httpx.HTTPError, ValueError) as exc:
             raise ProviderUnavailable("The open Wikimedia catalogue is temporarily unavailable.") from exc
+
+    def _kitsu_get(self, path: str, params: dict | None = None) -> dict:
+        """Optional no-key image enrichment; catalogue facts remain sourced from Wikidata."""
+        try:
+            response = httpx.get(
+                f"{KITSU_API}/{path.lstrip('/')}",
+                params=params or {},
+                timeout=self.timeout,
+                headers={"User-Agent": self.user_agent, "Accept": "application/vnd.api+json"},
+                follow_redirects=True,
+            )
+            response.raise_for_status()
+            return response.json()
+        except (httpx.HTTPError, ValueError):
+            return {}
+
+    @staticmethod
+    def _match_key(value: str) -> str:
+        return re.sub(r"[^a-z0-9]", "", value.casefold())
+
+    def _kitsu_anime(self, title: str) -> dict:
+        payload = self._kitsu_get("anime", {"filter[text]": title, "page[limit]": 3})
+        candidates = payload.get("data") or []
+        target = self._match_key(title)
+        item = next((candidate for candidate in candidates if target in {
+            self._match_key(str((candidate.get("attributes") or {}).get(key) or ""))
+            for key in ("canonicalTitle", "titles")
+        }), None) or (candidates[0] if candidates else None)
+        if not item:
+            return {}
+        attrs = item.get("attributes") or {}
+        poster = attrs.get("posterImage") or {}
+        cover = attrs.get("coverImage") or {}
+        return {
+            "id": str(item.get("id") or ""),
+            "poster": poster.get("original") or poster.get("large") or poster.get("medium") or "",
+            "banner": cover.get("original") or cover.get("large") or cover.get("small") or "",
+            "url": f"https://kitsu.app/anime/{item.get('id')}",
+        }
+
+    def _kitsu_artwork(self, titles: list[str]) -> dict[str, dict]:
+        unique = list(dict.fromkeys(title for title in titles if title))
+        if not unique:
+            return {}
+        with ThreadPoolExecutor(max_workers=min(4, len(unique))) as executor:
+            results = executor.map(self._kitsu_anime, unique)
+        return {title: result for title, result in zip(unique, results) if result}
+
+    def _kitsu_character(self, name: str) -> dict:
+        payload = self._kitsu_get("characters", {"filter[name]": name, "page[limit]": 3})
+        candidates = payload.get("data") or []
+        target = self._match_key(name)
+        item = next((candidate for candidate in candidates if self._match_key(str((candidate.get("attributes") or {}).get("canonicalName") or "")) == target), None) or (candidates[0] if candidates else None)
+        if not item:
+            return {}
+        attrs = item.get("attributes") or {}
+        return {
+            "image": (attrs.get("image") or {}).get("original") or "",
+            "url": f"https://kitsu.app/characters/{item.get('id')}",
+        }
+
+    def _kitsu_character_artwork(self, names: list[str]) -> dict[str, dict]:
+        unique = list(dict.fromkeys(name for name in names if name))
+        if not unique:
+            return {}
+        with ThreadPoolExecutor(max_workers=min(4, len(unique))) as executor:
+            results = executor.map(self._kitsu_character, unique)
+        return {name: result for name, result in zip(unique, results) if result.get("image")}
 
     def _sparql(self, query: str) -> list[dict]:
         try:
@@ -229,7 +299,67 @@ class WikimediaClient:
         }
         filenames += [_first_string(item, "P18") for item in related.values()]
         media = self._commons_metadata(filenames)
-        return [self._normalize(entity, labels, related, media, include_detail=include_detail) for entity in entities]
+        normalized = [self._normalize(entity, labels, related, media, include_detail=include_detail) for entity in entities]
+        kitsu = self._kitsu_artwork([item["title"] for item in normalized if not item["coverImage"]])
+        for item in normalized:
+            enrichment = kitsu.get(item["title"])
+            if not enrichment:
+                continue
+            item["coverImage"] = item["coverImage"] or enrichment["poster"]
+            item["bannerImage"] = item["bannerImage"] or enrichment["banner"]
+            item["imageAttribution"] = item["imageAttribution"] or {
+                "creator": "Kitsu catalogue",
+                "credit": "Public catalogue image",
+                "license": "External artwork",
+                "licenseUrl": "",
+                "sourceUrl": enrichment["url"],
+            }
+            if include_detail and enrichment.get("id"):
+                self._enrich_cast_from_kitsu(item, enrichment["id"])
+        return normalized
+
+    def _enrich_cast_from_kitsu(self, anime: dict, kitsu_id: str) -> None:
+        payload = self._kitsu_get("castings", {
+            "filter[mediaType]": "Anime", "filter[mediaId]": kitsu_id,
+            "include": "character,person", "page[limit]": 20,
+        })
+        included = payload.get("included") or []
+        characters = {str(item.get("id")): item for item in included if item.get("type") == "characters"}
+        people = {str(item.get("id")): item for item in included if item.get("type") == "people"}
+        existing = {self._match_key(item["name"]): item for item in anime.get("cast") or []}
+        for casting in payload.get("data") or []:
+            relationships = casting.get("relationships") or {}
+            character_ref = ((relationships.get("character") or {}).get("data") or {})
+            person_ref = ((relationships.get("person") or {}).get("data") or {})
+            character = characters.get(str(character_ref.get("id") or ""))
+            if not character:
+                continue
+            attrs = character.get("attributes") or {}
+            name = str(attrs.get("canonicalName") or attrs.get("name") or "Unknown character")
+            image = (attrs.get("image") or {}).get("original") or ""
+            person = people.get(str(person_ref.get("id") or ""))
+            person_attrs = (person or {}).get("attributes") or {}
+            voice_actor = None
+            if person:
+                voice_actor = {
+                    "id": int(person.get("id") or 0),
+                    "name": str(person_attrs.get("name") or "Unknown performer"),
+                    "image": (person_attrs.get("image") or {}).get("original") or "",
+                }
+            key = self._match_key(name)
+            if key in existing:
+                existing[key]["image"] = existing[key].get("image") or image
+                existing[key]["voiceActor"] = existing[key].get("voiceActor") or voice_actor
+                continue
+            if len(existing) >= 16:
+                break
+            entry = {
+                "id": int(character.get("id") or 0), "name": name, "nativeName": "",
+                "image": image, "role": str((casting.get("attributes") or {}).get("role") or "CHARACTER").upper(),
+                "voiceActor": voice_actor, "externalUrl": f"https://kitsu.app/characters/{character.get('id')}",
+            }
+            existing[key] = entry
+            anime.setdefault("cast", []).append(entry)
 
     def _normalize(self, entity: dict, labels: dict[str, str], related: dict[str, dict], media: dict[str, dict], *, include_detail: bool) -> dict:
         item_id = entity.get("id", "")
@@ -454,7 +584,14 @@ class WikimediaClient:
             has_next = len(ids) > page * per_page
         files = [_first_string(entity, "P18") for entity in characters]
         media = self._commons_metadata(files)
-        return {"items": [self._normalize_character(entity, media) for entity in characters[:per_page]], "page": {"currentPage": page, "hasNextPage": has_next, "perPage": per_page}}
+        items = [self._normalize_character(entity, media) for entity in characters[:per_page]]
+        kitsu = self._kitsu_character_artwork([item["name"] for item in items if not item["image"]])
+        for item in items:
+            enrichment = kitsu.get(item["name"])
+            if enrichment:
+                item["image"] = enrichment["image"]
+                item["imageAttribution"] = item["imageAttribution"] or {"creator": "Kitsu catalogue", "license": "External artwork", "licenseUrl": "", "sourceUrl": enrichment["url"]}
+        return {"items": items, "page": {"currentPage": page, "hasNextPage": has_next, "perPage": per_page}}
 
     def _normalize_character(self, entity: dict, media: dict[str, dict], *, include_detail: bool = False) -> dict:
         item_id = entity.get("id", "")
@@ -515,4 +652,10 @@ class WikimediaClient:
         if not entity:
             raise ProviderUnavailable("This character is not present in the open catalogue.")
         filename = _first_string(entity, "P18")
-        return self._normalize_character(entity, self._commons_metadata([filename]), include_detail=True)
+        result = self._normalize_character(entity, self._commons_metadata([filename]), include_detail=True)
+        if not result["image"]:
+            enrichment = self._kitsu_character(result["name"])
+            if enrichment.get("image"):
+                result["image"] = enrichment["image"]
+                result["imageAttribution"] = {"creator": "Kitsu catalogue", "license": "External artwork", "licenseUrl": "", "sourceUrl": enrichment["url"]}
+        return result
