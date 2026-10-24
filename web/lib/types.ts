@@ -30,6 +30,12 @@ export type AnimeTitle = {
   studios?: { id: number; name: string; url?: string }[];
   relations?: { relation: string; id: number; title: string; format: string; coverImage: string }[];
   trailer?: { id: string; site: string; thumbnail?: string } | null;
+  releaseStart?: string;
+  releaseEnd?: string;
+  ageRating?: string;
+  ageRatingGuide?: string;
+  externalRatings?: { source: string; score: number; scale: number; count: number; url?: string }[];
+  audience?: { ratingRank?: number; popularityRank?: number; userCount?: number; favoritesCount?: number };
 };
 
 export type DiscoveryShelf = { key: string; title: string; subtitle: string; items: AnimeTitle[] };

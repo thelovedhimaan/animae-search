@@ -160,6 +160,12 @@ class WikimediaClient:
             "poster": poster.get("original") or poster.get("large") or poster.get("medium") or "",
             "banner": cover.get("original") or cover.get("large") or cover.get("small") or "",
             "url": f"https://kitsu.app/anime/{item.get('id')}",
+            "averageRating": attrs.get("averageRating"), "ratingRank": attrs.get("ratingRank"),
+            "popularityRank": attrs.get("popularityRank"), "userCount": attrs.get("userCount"),
+            "favoritesCount": attrs.get("favoritesCount"), "ageRating": attrs.get("ageRating"),
+            "ageRatingGuide": attrs.get("ageRatingGuide"), "startDate": attrs.get("startDate"),
+            "endDate": attrs.get("endDate"), "episodeCount": attrs.get("episodeCount"),
+            "episodeLength": attrs.get("episodeLength"), "youtubeVideoId": attrs.get("youtubeVideoId"),
         }
 
     def _kitsu_artwork(self, titles: list[str]) -> dict[str, dict]:
@@ -178,8 +184,9 @@ class WikimediaClient:
         if not item:
             return {}
         attrs = item.get("attributes") or {}
+        artwork = attrs.get("image") or {}
         return {
-            "image": (attrs.get("image") or {}).get("original") or "",
+            "image": artwork.get("large") or artwork.get("medium") or artwork.get("original") or "",
             "url": f"https://kitsu.app/characters/{item.get('id')}",
         }
 
@@ -320,6 +327,15 @@ class WikimediaClient:
                 "sourceUrl": enrichment["url"],
             }
             if include_detail and enrichment.get("id"):
+                item["episodes"] = item.get("episodes") or enrichment.get("episodeCount")
+                item["duration"] = enrichment.get("episodeLength")
+                item["releaseStart"], item["releaseEnd"] = enrichment.get("startDate"), enrichment.get("endDate")
+                item["ageRating"], item["ageRatingGuide"] = enrichment.get("ageRating"), enrichment.get("ageRatingGuide")
+                item["audience"] = {key: enrichment.get(key) for key in ("ratingRank", "popularityRank", "userCount", "favoritesCount")}
+                if enrichment.get("averageRating"):
+                    item["externalRatings"] = [{"source": "Kitsu", "score": float(enrichment["averageRating"]), "scale": 100, "count": enrichment.get("userCount") or 0, "url": enrichment["url"]}]
+                if enrichment.get("youtubeVideoId"):
+                    item["trailer"] = {"id": enrichment["youtubeVideoId"], "site": "youtube"}
                 self._enrich_cast_from_kitsu(item, enrichment["id"])
         return normalized
 
@@ -367,8 +383,11 @@ class WikimediaClient:
             }
             existing[key] = entry
             anime.setdefault("cast", []).append(entry)
-        missing = [item["name"] for item in anime.get("cast") or [] if not item.get("image")]
-        for name, enrichment in self._kitsu_character_artwork(missing).items():
+        # Re-resolve every displayed character. Some Wikidata P18 values are
+        # photographs or Commons thumbnails that reject browser hotlinking;
+        # Kitsu's sized character artwork is the preferred presentation asset.
+        cast_names = [item["name"] for item in anime.get("cast") or []]
+        for name, enrichment in self._kitsu_character_artwork(cast_names).items():
             item = existing.get(self._match_key(name))
             if item:
                 item["image"] = enrichment["image"]
