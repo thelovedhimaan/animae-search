@@ -177,6 +177,12 @@ class WikimediaClient:
         return {title: result for title, result in zip(unique, results) if result}
 
     def _kitsu_character(self, name: str) -> dict:
+        # Explicit identities for ambiguous transliterations in Dragon Ball.
+        known_ids = {"Goku": "4119", "Gohan": "4231", "Goten": "4233"}
+        if name in known_ids:
+            record = self._kitsu_get(f"characters/{known_ids[name]}").get("data") or {}
+            artwork = (record.get("attributes") or {}).get("image") or {}
+            return {"image": artwork.get("original") or "", "url": f"https://kitsu.app/characters/{known_ids[name]}"}
         aliases = {"Goku": "Gokuu Son", "Vegito": "Vegetto", "Gotenks": "Gotenks"}
         lookup = aliases.get(name, name)
         payload = self._kitsu_get("characters", {"filter[name]": lookup, "page[limit]": 10})
