@@ -300,7 +300,12 @@ class WikimediaClient:
         filenames += [_first_string(item, "P18") for item in related.values()]
         media = self._commons_metadata(filenames)
         normalized = [self._normalize(entity, labels, related, media, include_detail=include_detail) for entity in entities]
-        kitsu = self._kitsu_artwork([item["title"] for item in normalized if not item["coverImage"]])
+        # Detail pages also need Kitsu's cast graph even when Wikidata already
+        # supplied a title poster. Limiting this lookup to missing covers left
+        # popular titles such as Dragon Ball Z with sparse or unusable cast art.
+        kitsu = self._kitsu_artwork([
+            item["title"] for item in normalized if include_detail or not item["coverImage"]
+        ])
         for item in normalized:
             enrichment = kitsu.get(item["title"])
             if not enrichment:
@@ -348,7 +353,9 @@ class WikimediaClient:
                 }
             key = self._match_key(name)
             if key in existing:
-                existing[key]["image"] = existing[key].get("image") or image
+                # Kitsu character art is designed for catalogue display and is
+                # more dependable than arbitrary Commons photographs/murals.
+                existing[key]["image"] = image or existing[key].get("image") or ""
                 existing[key]["voiceActor"] = existing[key].get("voiceActor") or voice_actor
                 continue
             if len(existing) >= 16:
