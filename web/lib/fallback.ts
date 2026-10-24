@@ -1,34 +1,43 @@
-import type { AnimeTitle, HomeDiscovery } from "./types";
+import type { HomeDiscovery } from "./types";
 
-const covers: Record<string, string> = { "n16498-C6FPmWm59CyP": "/covers/attack-on-titan.svg", "n1535-J5r2Fjr1fTX1": "/covers/death-note.svg", "n113415-LHBAeoZDIsnF": "/covers/jujutsu-kaisen.svg", "n21-YCDoj1EkAxFn": "/covers/one-piece.svg", "n11061-sIpBprNRfzCe": "/covers/hunter-x-hunter.svg" };
-const image = (id: string) => covers[id] || "/covers/death-note.svg";
+const updatedAt = "2026-10-24T00:00:00Z";
+const openRecord = (id: number, title: string, nativeTitle: string, description: string, format: string, year: number, genres: string[]) => ({
+  id,
+  qid: `Q${id}`,
+  slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+  title,
+  nativeTitle,
+  description,
+  coverImage: "",
+  format,
+  status: "FINISHED",
+  seasonYear: year,
+  genres,
+  sourceLabel: "Wikidata",
+  sourceUrl: `https://www.wikidata.org/wiki/Q${id}`,
+  updatedAt,
+  watchLinks: [],
+});
 
 export const fallbackDiscovery: HomeDiscovery = {
-  source: "curated fallback",
-  updatedAt: "2026-10-22T00:00:00Z",
+  source: "cached open catalogue",
+  updatedAt,
   degraded: true,
   shelves: [
     {
       key: "trending",
-      title: "Trending now",
-      subtitle: "What the anime community is watching and discussing.",
+      title: "Open catalogue highlights",
+      subtitle: "A small cached selection appears while the Wikimedia service reconnects.",
       items: [
-        { id: 16498, slug: "attack-on-titan", title: "Attack on Titan", nativeTitle: "進撃の巨人", description: "Humanity fights for survival beyond enormous walls.", coverImage: image("n16498-C6FPmWm59CyP"), format: "TV", status: "Finished", episodes: 25, genres: ["Action", "Drama", "Fantasy"], averageScore: 84, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" },
-        { id: 1535, slug: "death-note", title: "Death Note", nativeTitle: "DEATH NOTE", description: "A brilliant student discovers a notebook with lethal power.", coverImage: image("n1535-J5r2Fjr1fTX1"), format: "TV", status: "Finished", episodes: 37, genres: ["Mystery", "Psychological", "Thriller"], averageScore: 84, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" },
-        { id: 113415, slug: "jujutsu-kaisen", title: "JUJUTSU KAISEN", nativeTitle: "呪術廻戦", description: "A student enters the dangerous world of curses and sorcerers.", coverImage: image("n113415-LHBAeoZDIsnF"), format: "TV", status: "Finished", episodes: 24, genres: ["Action", "Supernatural"], averageScore: 85, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" },
-        { id: 21, slug: "one-piece", title: "ONE PIECE", nativeTitle: "ONE PIECE", description: "A pirate crew crosses the Grand Line in search of the ultimate treasure.", coverImage: image("n21-YCDoj1EkAxFn"), format: "TV", status: "Releasing", genres: ["Action", "Adventure", "Fantasy"], averageScore: 88, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" },
-        { id: 11061, slug: "hunter-x-hunter-2011", title: "Hunter x Hunter", nativeTitle: "HUNTER×HUNTER", description: "A young hunter searches for his father and discovers a vast world.", coverImage: image("n11061-sIpBprNRfzCe"), format: "TV", status: "Finished", episodes: 148, genres: ["Action", "Adventure", "Fantasy"], averageScore: 90, sourceLabel: "AniList", updatedAt: "2026-10-22T00:00:00Z" }
-      ]
+        openRecord(155653, "Spirited Away", "千と千尋の神隠し", "A Japanese animated fantasy film.", "MOVIE", 2001, ["Fantasy", "Adventure"]),
+        openRecord(101244908, "Cowboy Bebop", "カウボーイビバップ", "A Japanese anime television series.", "TV", 1998, ["Science fiction", "Western"]),
+        openRecord(336012, "The Girl Who Leapt Through Time", "時をかける少女", "A Japanese animated science-fiction film.", "MOVIE", 2006, ["Science fiction", "Drama"]),
+        openRecord(4006754, "Adolescence of Utena", "少女革命ウテナ アドゥレセンス黙示録", "A Japanese animated film.", "MOVIE", 1999, ["Fantasy", "Drama"]),
+        openRecord(5058811, "Cencoroll", "センコロール", "A Japanese anime film.", "MOVIE", 2009, ["Science fiction"]),
+      ],
     },
-    { key: "current", title: "This season", subtitle: "Popular current-season titles from the preview catalogue.", items: [] },
-    { key: "top-rated", title: "Top rated", subtitle: "Highest-scoring titles from the preview catalogue.", items: [] },
-    { key: "upcoming", title: "Coming next", subtitle: "Upcoming titles return when the live provider is available.", items: [] }
-  ]
+    { key: "current", title: "Recently released", subtitle: "Recent records return when Wikimedia is available.", items: [] },
+    { key: "top-rated", title: "Community favourites", subtitle: "Anime Index ratings appear as viewers publish reviews.", items: [] },
+    { key: "upcoming", title: "Coming next", subtitle: "Upcoming records return when Wikimedia is available.", items: [] },
+  ],
 };
-
-const officialSearchLinks = (title: string): NonNullable<AnimeTitle["watchLinks"]> => [
-  { site: "Search Crunchyroll", url: `https://www.crunchyroll.com/search?q=${encodeURIComponent(title)}` },
-  { site: "Search Netflix", url: `https://www.netflix.com/search?q=${encodeURIComponent(title)}` },
-];
-
-fallbackDiscovery.shelves.forEach((shelf) => shelf.items.forEach((item) => { item.watchLinks = officialSearchLinks(item.title); }));

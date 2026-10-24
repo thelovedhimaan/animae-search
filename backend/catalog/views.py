@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .providers.anilist import ProviderUnavailable
+from .providers.base import ProviderUnavailable
 from .models import LibraryEntry, Review
 from .services import character_detail, discovery_home, search_characters, search_titles, title_detail
 
@@ -343,7 +343,7 @@ class AnimeQuestionView(APIView):
                 payload = response.json()
                 answer = "".join(part.get("text", "") for candidate in payload.get("candidates", [])[:1] for part in (candidate.get("content") or {}).get("parts", []))
                 if answer:
-                    return Response({"answer": answer, "mode": "ai", "provider": "Gemini", "source": anime.get("sourceLabel", "AniList")})
+                    return Response({"answer": answer, "mode": "ai", "provider": "Gemini", "source": anime.get("sourceLabel", "Wikidata")})
             except (httpx.HTTPError, ValueError):
                 pass
         if api_key:
@@ -354,7 +354,7 @@ class AnimeQuestionView(APIView):
                 payload = response.json()
                 answer = next((part.get("text") for item in payload.get("output", []) for part in item.get("content", []) if part.get("type") == "output_text"), "")
                 if answer:
-                    return Response({"answer": answer, "mode": "ai", "provider": "OpenAI", "source": anime.get("sourceLabel", "AniList")})
+                    return Response({"answer": answer, "mode": "ai", "provider": "OpenAI", "source": anime.get("sourceLabel", "Wikidata")})
             except (httpx.HTTPError, ValueError):
                 pass
         lower = question.lower()
@@ -364,12 +364,12 @@ class AnimeQuestionView(APIView):
         elif any(word in lower for word in ("episode", "long", "length")):
             answer = f"{anime['title']} has {anime.get('episodes') or 'an unconfirmed number of'} episodes in the current catalogue record."
         elif any(word in lower for word in ("score", "rating", "rated")):
-            answer = f"Its AniList community score is {anime.get('averageScore') / 10:.1f}/10." if anime.get("averageScore") else "The catalogue does not currently include a community score."
+            answer = f"Its Anime Index community score is {anime.get('averageScore') / 10:.1f}/10." if anime.get("averageScore") else "Anime Index does not have enough community ratings for this title yet."
         elif any(word in lower for word in ("genre", "type", "kind")):
             answer = f"It is listed as {anime.get('format') or 'anime'} with these genres: {', '.join(anime.get('genres') or [])}."
         else:
             answer = anime.get("description") or "The catalogue does not contain enough information to answer that question yet."
-        return Response({"answer": answer, "mode": "catalogue", "source": anime.get("sourceLabel", "AniList")})
+        return Response({"answer": answer, "mode": "catalogue", "source": anime.get("sourceLabel", "Wikidata")})
 
 
 class LibraryView(APIView):

@@ -5,7 +5,7 @@ const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http:
 
 export async function getHomeDiscovery(): Promise<HomeDiscovery> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/discovery/home`, { next: { revalidate: 900 }, signal: AbortSignal.timeout(4500) });
+    const response = await fetch(`${API_URL}/api/v1/discovery/home`, { next: { revalidate: 900 }, signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Discovery request failed: ${response.status}`);
     return response.json() as Promise<HomeDiscovery>;
   } catch {
@@ -17,7 +17,7 @@ export async function searchAnime(filters: SearchFilters): Promise<SearchRespons
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => { if (value !== "" && value !== 1) params.set(key, String(value)); });
   try {
-    const response = await fetch(`${API_URL}/api/v1/search?${params}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${API_URL}/api/v1/search?${params}`, { cache: "no-store", signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Search request failed: ${response.status}`);
     return response.json() as Promise<SearchResponse>;
   } catch {
@@ -29,7 +29,7 @@ export async function searchAnime(filters: SearchFilters): Promise<SearchRespons
 
 export async function getAnime(mediaId: number): Promise<AnimeTitle | undefined> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/anime/${mediaId}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${API_URL}/api/v1/anime/${mediaId}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Title request failed: ${response.status}`);
     return response.json() as Promise<AnimeTitle>;
   } catch {
@@ -42,17 +42,17 @@ export async function searchCharacters(query: string, page: number): Promise<Cha
   if (query) params.set("q", query);
   if (page > 1) params.set("page", String(page));
   try {
-    const response = await fetch(`${API_URL}/api/v1/characters?${params}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${API_URL}/api/v1/characters?${params}`, { cache: "no-store", signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Character request failed: ${response.status}`);
     return response.json() as Promise<CharacterSearchResponse>;
   } catch {
-    return { results: [], page: { currentPage: page, hasNextPage: false, total: 0 }, source: "AniList", degraded: true };
+    return { results: [], page: { currentPage: page, hasNextPage: false, total: 0 }, source: "Wikidata", degraded: true };
   }
 }
 
 export async function getCharacter(characterId: number): Promise<AnimeCharacter | undefined> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/characters/${characterId}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${API_URL}/api/v1/characters/${characterId}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Character detail request failed: ${response.status}`);
     return response.json() as Promise<AnimeCharacter>;
   } catch {

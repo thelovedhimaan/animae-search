@@ -14,11 +14,18 @@ export type AnimeTitle = {
   duration?: number;
   genres: string[];
   averageScore?: number;
+  ratingCount?: number;
   popularity?: number;
   trending?: number;
   sourceLabel: string;
+  sourceUrl?: string;
+  qid?: string;
   updatedAt: string;
+  imageAttribution?: { creator: string; credit?: string; license: string; licenseUrl?: string; sourceUrl: string } | null;
+  textAttribution?: { source: string; sourceUrl: string; license: string; licenseUrl: string };
+  mediaCredits?: { creator: string; credit?: string; license: string; licenseUrl?: string; sourceUrl: string }[];
   watchLinks?: { site: string; url: string; icon?: string; color?: string }[];
+  officialLinks?: { site: string; url: string }[];
   cast?: { id: number; name: string; nativeName?: string; image: string; role: string; voiceActor?: { id: number; name: string; image: string } | null }[];
   studios?: { id: number; name: string; url?: string }[];
   relations?: { relation: string; id: number; title: string; format: string; coverImage: string }[];
@@ -32,5 +39,5 @@ export type SearchResponse = { results: AnimeTitle[]; page: { currentPage: numbe
 
 export type CharacterAppearance = { id: number; slug: string; title: string; coverImage: string; role: string };
 export type VoiceActor = { id: number; name: { full?: string; native?: string }; image?: { large?: string }; languageV2?: string; siteUrl?: string };
-export type AnimeCharacter = { id: number; slug: string; name: string; nativeName: string; alternativeNames: string[]; image: string; description: string; gender: string; age: string; favourites: number; sourceUrl: string; appearances: CharacterAppearance[]; voiceActors: VoiceActor[] };
+export type AnimeCharacter = { id: number; slug: string; name: string; nativeName: string; alternativeNames: string[]; image: string; description: string; gender: string; age: string; favourites: number; sourceUrl: string; sourceLabel?: string; imageAttribution?: { creator: string; license: string; licenseUrl?: string; sourceUrl: string } | null; mediaCredits?: { creator: string; license: string; licenseUrl?: string; sourceUrl: string }[]; appearances: CharacterAppearance[]; voiceActors: VoiceActor[] };
 export type CharacterSearchResponse = { results: AnimeCharacter[]; page: { currentPage: number; lastPage?: number; hasNextPage: boolean; total?: number; perPage?: number }; source: string; degraded?: boolean };

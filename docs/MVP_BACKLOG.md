@@ -7,7 +7,7 @@
 - [x] Add Docker Compose for web, API, worker, PostgreSQL, Redis, and optional Kafka.
 - [x] Add environment validation, health checks, throttling, and API contract tests.
 - [x] Model provider identities so one anime can map to multiple data sources.
-- [x] Add a live AniList adapter with normalized responses, Redis caching, and graceful fallback behavior.
+- [x] Add a live Wikimedia adapter with normalized CC0 facts, licensed-media attribution, Redis caching, and graceful fallback behavior.
 - [x] Add an AWS CloudFormation deployment for the credit-backed MVP preview.
 - [ ] Complete OpenAPI coverage, structured logging, request IDs, import retries, and provenance records.
 - [ ] Activate the Jenkins ECR/ECS promotion path when the product is ready for managed environments.

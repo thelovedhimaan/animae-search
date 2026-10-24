@@ -11,6 +11,19 @@ This stack runs the web app, Django API, PostgreSQL, and Redis on one Free Tier 
 
 The free `sslip.io` hostname resolves directly to the instance IP. A branded domain can replace it later without changing the application architecture.
 
+Store the Gemini key as an encrypted standard Parameter Store value before deploying. The key never belongs in Git, a frontend variable, or a CloudFormation parameter:
+
+```bash
+aws ssm put-parameter \
+  --region ap-south-1 \
+  --name /anime-index/prod/gemini-api-key \
+  --type SecureString \
+  --value "YOUR_GEMINI_KEY" \
+  --overwrite
+```
+
+The EC2 role can read only that named parameter. Bootstrap writes it to the server-only `.env.aws` file with command tracing disabled.
+
 The deployment is intended for the MVP while AWS promotional credits are active. It has a single failure domain and should not be described as highly available. Data is stored on the instance's encrypted EBS volume and disappears when the CloudFormation stack is deleted.
 
 Deploy:

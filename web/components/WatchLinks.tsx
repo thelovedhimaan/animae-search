@@ -1,5 +1,12 @@
 type WatchLink = { site: string; url: string };
 
-export function WatchLinks({ links }: { links: WatchLink[] }) {
-  return <section className="watch-links" id="watch"><span className="kicker">WHERE TO WATCH</span><h2>Official viewing options</h2>{links.length ? <div>{links.map((link) => <a href={link.url} target="_blank" rel="noreferrer" key={`${link.site}-${link.url}`}>{link.site}<span>↗</span></a>)}</div> : <p>No official streaming link is listed for this title yet. Availability varies by country and can change over time.</p>}</section>;
+export function WatchLinks({ links, officialLinks = [] }: { links: WatchLink[]; officialLinks?: WatchLink[] }) {
+  return <section className="watch-links" id="watch">
+    <span className="kicker">OFFICIAL LINKS</span>
+    <h2>Watch and verify</h2>
+    {links.length
+      ? <><p>Verified viewing links from official providers. Availability can vary by country.</p><div>{links.map((link) => <a href={link.url} target="_blank" rel="noreferrer" key={`${link.site}-${link.url}`}>{link.site}<span>↗</span></a>)}</div></>
+      : <p>No verified streaming link is recorded yet. We do not guess availability or link to unlicensed streams.</p>}
+    {officialLinks.length > 0 && <div className="official-source-links">{officialLinks.map((link) => <a href={link.url} target="_blank" rel="noreferrer" key={`${link.site}-${link.url}`}>{link.site}<span>↗</span></a>)}</div>}
+  </section>;
 }

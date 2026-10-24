@@ -4,7 +4,7 @@
 
 The browser renders the React interface through Next.js. Public pages can be rendered on the server for fast loading and search indexing. Interactive actions call Django through `/api/v1`. Django validates identity and permissions, reads PostgreSQL, uses Redis for hot or temporary data, and returns a stable application-owned response instead of exposing upstream provider formats to the browser.
 
-This adapter layer matters because AniList, Jikan, Wikimedia, and availability providers use different IDs, fields, limits, and freshness. Import workers translate them into one canonical model while preserving the original source and retrieval time.
+This adapter layer translates Wikidata QIDs, Wikipedia extracts, Commons file metadata, and future verified availability records into one canonical model while preserving source, licence, and retrieval time.
 
 ## Storage
 

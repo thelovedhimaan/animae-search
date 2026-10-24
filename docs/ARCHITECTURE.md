@@ -58,11 +58,11 @@ The initial deployment can run web, API, worker, PostgreSQL, and Redis through D
 
 ## Data-source strategy
 
-AniList is the canonical discovery feed for titles, characters, staff, studios, genres, seasons, relations, and community scores. Its public GraphQL API is cached and imported through the backend; browser clients never independently exhaust upstream limits. Jikan v4 supplies a separately attributed MyAnimeList-derived score and selected gaps, but it is an unofficial API and cannot be treated as the source of truth. Wikimedia APIs provide encyclopedic context and reusable media under each asset's license.
+Wikidata is the canonical discovery feed. Its structured facts are CC0 and are normalized behind the Django adapter so browser clients do not call Wikimedia directly. Attributed Wikipedia extracts may enrich summaries, while Wikimedia Commons files are displayed only with their per-file creator, source, and licence metadata. Anime Index stores its own ratings and activity signals. The application does not depend on AniList, Jikan, scraped MyAnimeList data, or copied platform scores.
 
 Streaming availability is region-sensitive and volatile. Every offer stores provider, region, access type (`subscription`, `free_with_ads`, `rent`, `buy`, or `official_free`), URL, source, and `verified_at`. The UI never labels an unverified third-party upload as legal. Links expire from display when their verification window passes.
 
-Ratings are never blended without explanation. The title page displays each provider's value, scale, vote count, attribution, and retrieval time. Anime Search maintains a separate community rating. A normalized comparison may be shown only with the formula visible.
+Anime Index ratings are calculated only from reviews submitted on this platform, with vote counts shown beside the score. External rating pages may be linked for reference but their values are not copied into the catalogue.
 
 ## AI and RAG
 

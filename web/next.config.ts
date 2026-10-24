@@ -12,8 +12,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "s4.anilist.co" },
-      { protocol: "https", hostname: "s3.anilist.co" }
+      { protocol: "https", hostname: "upload.wikimedia.org" },
+      { protocol: "https", hostname: "commons.wikimedia.org" }
     ]
   }
 };

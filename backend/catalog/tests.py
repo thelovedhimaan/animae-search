@@ -3,6 +3,8 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from .providers.wikimedia import WikimediaClient
+
 
 class CatalogApiTests(TestCase):
     def setUp(self):
@@ -85,7 +87,7 @@ class CatalogApiTests(TestCase):
 
     @patch("catalog.views.title_detail")
     def test_anime_question_uses_grounded_catalogue_answer(self, detail):
-        detail.return_value = {"title": "Cowboy Bebop", "episodes": 26, "sourceLabel": "AniList", "watchLinks": []}
+        detail.return_value = {"title": "Cowboy Bebop", "episodes": 26, "sourceLabel": "Wikidata", "watchLinks": []}
         response = self.client.post("/api/v1/anime/1/ask", {"question": "How many episodes are there?"}, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertIn("26", response.json()["answer"])
@@ -126,7 +128,7 @@ class CatalogApiTests(TestCase):
 
     @patch("catalog.views.search_characters")
     def test_character_search_contract(self, search):
-        search.return_value = {"results": [{"id": 1, "name": "Spike Spiegel"}], "page": {"currentPage": 1, "hasNextPage": False}, "source": "AniList"}
+        search.return_value = {"results": [{"id": 1, "name": "Spike Spiegel"}], "page": {"currentPage": 1, "hasNextPage": False}, "source": "Wikidata"}
         response = self.client.get("/api/v1/characters?q=spike")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["results"][0]["name"], "Spike Spiegel")
@@ -138,3 +140,27 @@ class CatalogApiTests(TestCase):
         response = self.client.get("/api/v1/characters/1")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["id"], 1)
+
+
+class WikimediaNormalizationTests(TestCase):
+    def test_cc0_record_keeps_qid_numeric_route_and_media_provenance(self):
+        entity = {
+            "id": "Q101244908",
+            "labels": {"en": {"value": "Cowboy Bebop"}, "ja": {"value": "カウボーイビバップ"}},
+            "descriptions": {"en": {"value": "Japanese anime television series"}},
+            "claims": {
+                "P31": [{"mainsnak": {"datavalue": {"value": {"id": "Q63952888"}}}}],
+                "P1113": [{"mainsnak": {"datavalue": {"value": {"amount": "+26", "unit": "1"}}}}],
+                "P154": [{"mainsnak": {"datavalue": {"value": "Cowboy Bebop.svg"}}}],
+            },
+            "sitelinks": {"enwiki": {"title": "Cowboy Bebop"}},
+        }
+        media = {"Cowboy Bebop.svg": {"url": "https://upload.wikimedia.org/example.svg", "creator": "Contributor", "license": "CC BY-SA 4.0", "sourceUrl": "https://commons.wikimedia.org/example"}}
+        client = WikimediaClient()
+        with patch.object(client, "_entities", return_value={}), patch.object(client, "_commons_metadata", return_value=media):
+            result = client._normalize_many([entity])[0]
+        self.assertEqual(result["id"], 101244908)
+        self.assertEqual(result["format"], "TV")
+        self.assertEqual(result["episodes"], 26)
+        self.assertEqual(result["sourceLabel"], "Wikidata")
+        self.assertEqual(result["imageAttribution"]["license"], "CC BY-SA 4.0")

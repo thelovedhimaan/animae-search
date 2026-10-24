@@ -13,6 +13,10 @@ Parameters:
   RepositoryBranch:
     Type: String
     Default: master
+  GeminiParameterName:
+    Type: String
+    Default: /anime-index/prod/gemini-api-key
+    Description: SecureString Parameter Store name containing the Gemini server API key.
 
 Resources:
   InstanceRole:
@@ -27,6 +31,14 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: AnimeIndexRuntimeParameters
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${GeminiParameterName}
       Tags:
         - { Key: Project, Value: anime-index }
 
@@ -122,6 +134,15 @@ Resources:
           EOF
             chmod 0600 .env.aws
           fi
+
+          set +x
+          GEMINI_API_KEY=$(aws ssm get-parameter --name '${GeminiParameterName}' --with-decryption --region '${AWS::Region}' --query Parameter.Value --output text 2>/dev/null || true)
+          if [ -n "$GEMINI_API_KEY" ] && [ "$GEMINI_API_KEY" != "None" ]; then
+            sed -i '/^GEMINI_API_KEY=/d;/^GEMINI_MODEL=/d' .env.aws
+            printf 'GEMINI_API_KEY=%s\nGEMINI_MODEL=gemini-2.5-flash-lite\n' "$GEMINI_API_KEY" >> .env.aws
+          fi
+          unset GEMINI_API_KEY
+          set -x
 
           docker compose --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml up --build --detach
 

@@ -1,7 +1,7 @@
 import type { SearchFilters as Filters } from "@/lib/types";
 
 const options = {
-  sort: [["relevance", "Relevance"], ["trending", "Trending"], ["score", "Top rated"], ["popular", "Most popular"], ["newest", "Newest"]],
+  sort: [["relevance", "Relevance"], ["trending", "Trending here"], ["score", "Anime Index rating"], ["popular", "Most documented"], ["newest", "Newest"]],
   format: [["", "All formats"], ["tv", "TV"], ["movie", "Movie"], ["ova", "OVA"], ["ona", "ONA"], ["special", "Special"]],
   status: [["", "Any status"], ["airing", "Airing now"], ["finished", "Finished"], ["upcoming", "Upcoming"]],
   season: [["", "Any season"], ["current", "Current season"], ["winter", "Winter"], ["spring", "Spring"], ["summer", "Summer"], ["fall", "Fall"]],

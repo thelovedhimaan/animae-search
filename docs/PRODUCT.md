@@ -20,7 +20,7 @@
 - Responsive public home, search, browse, title, character, studio, and season pages.
 - Filters for format, status, season, year, genre, theme, age rating, episode count, score, and legal availability.
 - Sort by relevance, popularity, score, recency, and title.
-- Provider-attributed scores and freshness labels.
+- Anime Index community scores with vote counts and freshness labels.
 - Region-aware official availability links.
 - Google sign-in, watchlist, completed list, favorites, and Anime Search ratings.
 - Loading, empty, stale, rate-limited, and provider-degraded states.

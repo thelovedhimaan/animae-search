@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.13-232-238-146.sslip.io";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

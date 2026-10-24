@@ -32,8 +32,8 @@ and provider constraints change.
 shareable filters, pagination, keyboard autocomplete, rich title routes, cast,
 relationships, trailers, character profiles, caching, fallback states, SEO
 metadata, and AWS preview are implemented. Studio landing pages and fully
-verified regional availability remain catalogue expansions because AniList does
-not supply complete regional rights data.
+verified regional availability remain catalogue expansions because Wikimedia
+does not provide complete regional streaming-rights data.
 
 **Exit condition:** users can reliably discover and compare titles without AI.
 
@@ -62,7 +62,7 @@ credentials and HTTPS callback configuration are external setup.
 **Exit condition:** AI features pass agreed relevance, citation, latency, cost,
 and spoiler-safety thresholds.
 
-**Status:** title-level multi-turn Q&A is implemented with AniList context,
+**Status:** title-level multi-turn Q&A is implemented with attributed Wikimedia context,
 Gemini as the preferred model, optional OpenAI fallback, bounded history, and a
 deterministic catalogue fallback. Full vector RAG and automated evaluation need
 provider keys and an approved evaluation corpus.

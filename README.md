@@ -16,7 +16,8 @@ The preview runs over HTTPS on a credit-backed EC2 deployment in `ap-south-1`. C
 - Native accounts, optional Google OAuth, account export/deletion, likes, watch later, visit history, and watching/completed/paused/dropped states
 - Accessible route loaders, skeleton states, subtle page/card motion, and reduced-motion support
 - Search metadata, canonical URLs, dynamic sitemap, robots rules, title/character structured data, breadcrumbs, social preview images, and an editorial source page
-- Live AniList GraphQL adapter for discovery, filtered search, and title details
+- Free Wikimedia catalogue adapter using CC0 Wikidata facts, attributed Wikipedia summaries, and per-file Commons licensing
+- Anime Index-owned community ratings and activity-based trending instead of copied external platform scores
 - Redis-backed response caching with an in-process development fallback
 - Curated frontend fallback data when the API or upstream provider is unavailable
 - PostgreSQL models for normalized titles, external provider identities, characters, and official viewing availability
@@ -65,7 +66,9 @@ python manage.py runserver
 
 Copy [`.env.example`](./.env.example) for the available configuration variables. Secrets belong in local environment files, Jenkins credentials, or AWS Secrets Manager and must never be committed.
 
-For model-backed, multi-turn title conversations, create a Gemini API key in Google AI Studio and set `GEMINI_API_KEY`. The default `gemini-2.5-flash-lite` model has a free tier; limits and data-use terms depend on the account and may change. `OPENAI_API_KEY` remains an optional fallback. Without either key, the assistant continues to answer common questions from the current AniList record instead of failing.
+For model-backed, multi-turn title conversations, create a Gemini API key in Google AI Studio and set `GEMINI_API_KEY`. The default `gemini-2.5-flash-lite` model has a free tier; limits and data-use terms depend on the account and may change. `OPENAI_API_KEY` remains an optional fallback. Without either key, the assistant continues to answer common questions from the current Wikimedia record instead of failing.
+
+Set `WIKIMEDIA_USER_AGENT` to a descriptive application name and working contact URL or email. Wikimedia requires identifiable API clients. The adapter caches responses, batches entity and media lookups, follows rate-limit responses, and exposes source and licence metadata to the interface.
 
 For Google sign-in, create a Google OAuth web client and set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL`. Register the exact callback shown in `.env.example` locally; in production use `https://YOUR_DOMAIN/api/account/google/callback`. Set `WEB_URL` and `NEXT_PUBLIC_SITE_URL` to the same public HTTPS origin.
 
@@ -73,12 +76,12 @@ For Google sign-in, create a Google OAuth web client and set `GOOGLE_CLIENT_ID`,
 
 1. Next.js asks Django for a discovery shelf, search result, or title record.
 2. Django checks Redis for a recent normalized response.
-3. On a cache miss, the AniList adapter sends a bounded GraphQL query.
-4. The adapter maps provider fields into the stable Anime Index API contract.
+3. On a cache miss, the Wikimedia adapter queries Wikidata and batches related entity and Commons media lookups.
+4. The adapter maps CC0 facts and licensed content into the stable Anime Index API contract while preserving provenance.
 5. Django caches the result and returns it to Next.js.
-6. If the API is down, Next.js renders a small labelled preview dataset instead of breaking the page.
+6. If the API is down, Next.js renders a small labelled open-data snapshot instead of breaking the page.
 
-PostgreSQL is the durable source for user and editorial data. Redis reduces latency and protects upstream quotas. Kafka carries asynchronous domain events; it is not used as a cache. Provider ratings remain attributed instead of being merged into a misleading universal score.
+PostgreSQL is the durable source for user and editorial data. Redis reduces latency and protects upstream quotas. Kafka carries asynchronous domain events; it is not used as a cache. Ratings and trending are calculated from Anime Index reviews, saves, and visits.
 
 ## Validation
 

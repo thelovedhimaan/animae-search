@@ -2,7 +2,7 @@
 import { getHomeDiscovery } from "@/lib/api";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://ec2-13-232-238-146.ap-south-1.compute.amazonaws.com";
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://anime-index.13-232-238-146.sslip.io";
   const discovery = await getHomeDiscovery();
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: "daily", priority: 1 },
