@@ -106,7 +106,11 @@ def normalize_media_detail(media: dict) -> dict:
         "nativeName": ((edge.get("node") or {}).get("name") or {}).get("native") or "",
         "image": ((edge.get("node") or {}).get("image") or {}).get("large") or "",
         "role": edge.get("role") or "",
-        "voiceActor": ({"id": edge["voiceActors"][0].get("id"), "name": ((edge["voiceActors"][0].get("name") or {}).get("full") or ""), "image": ((edge["voiceActors"][0].get("image") or {}).get("large") or ""} if edge.get("voiceActors") else None),
+        "voiceActor": ({
+            "id": edge["voiceActors"][0].get("id"),
+            "name": (edge["voiceActors"][0].get("name") or {}).get("full") or "",
+            "image": (edge["voiceActors"][0].get("image") or {}).get("large") or "",
+        } if edge.get("voiceActors") else None),
     } for edge in characters.get("edges") or []]
     result["studios"] = [{"id": node.get("id"), "name": node.get("name") or "Unknown studio", "url": node.get("siteUrl") or ""} for node in (media.get("studios") or {}).get("nodes") or []]
     result["relations"] = [{
