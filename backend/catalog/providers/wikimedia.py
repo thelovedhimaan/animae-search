@@ -386,7 +386,10 @@ class WikimediaClient:
         # Re-resolve every displayed character. Some Wikidata P18 values are
         # photographs or Commons thumbnails that reject browser hotlinking;
         # Kitsu's sized character artwork is the preferred presentation asset.
-        cast_names = [item["name"] for item in anime.get("cast") or []]
+        cast_names = [
+            item["name"] for item in anime.get("cast") or []
+            if not item.get("image") or "thumb.wikimedia.org" in item.get("image", "")
+        ]
         for name, enrichment in self._kitsu_character_artwork(cast_names).items():
             item = existing.get(self._match_key(name))
             if item:

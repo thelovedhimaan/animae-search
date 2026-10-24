@@ -128,3 +128,22 @@ footer { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 2rem; align-i
 .source-credits > div { display: flex; flex-wrap: wrap; gap: .5rem; }
 .source-credits a { display: grid; gap: .2rem; padding: .65rem .8rem; color: #d4d9e1; border: 1px solid var(--line); border-radius: .55rem; background: #0b0f17; font-size: .62rem; text-decoration: none; }
 .source-credits a span { color: var(--muted); }
+
+.anime-story, .anime-information { padding: clamp(2rem, 4vw, 4rem); }
+.anime-story > p { max-width: 74rem; margin: 0; color: #c6ced9; font-size: clamp(.9rem, 1.2vw, 1.05rem); line-height: 1.8; }
+.information-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(18rem, .65fr); gap: 1rem; }
+.information-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: .8rem; }
+.information-facts div { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: .8rem; padding: .9rem 1rem; border-bottom: 1px solid var(--line); }
+.information-facts div:nth-child(odd) { border-right: 1px solid var(--line); }
+.information-facts dt, .audience-panel dt { color: var(--muted); font-size: .58rem; text-transform: uppercase; letter-spacing: .08em; }
+.information-facts dd { margin: 0; color: #eef2f7; font-size: .75rem; font-weight: 700; }
+.audience-panel { padding: 1rem; border: 1px solid var(--line); border-radius: .8rem; background: #0b0f17; }
+.audience-panel h3 { margin: 0 0 .75rem; font-size: .9rem; }
+.audience-panel > a { display: grid; grid-template-columns: 1fr auto; padding: .8rem; color: inherit; border-radius: .65rem; background: rgba(214,255,75,.08); text-decoration: none; }
+.audience-panel > a span, .audience-panel > a em { color: var(--muted); font-size: .58rem; font-style: normal; }
+.audience-panel > a strong { grid-row: span 2; font-size: 1.6rem; color: var(--lime); }
+.audience-panel > a strong small { font-size: .6rem; }
+.audience-panel dl { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: .8rem 0 0; }
+.audience-panel dl div { padding: .6rem; border: 1px solid var(--line); border-radius: .55rem; }
+.audience-panel dd { margin: .25rem 0 0; font-weight: 800; }
+@media (max-width: 760px) { .information-layout { grid-template-columns: 1fr; } .information-facts { grid-template-columns: 1fr; } .information-facts div:nth-child(odd) { border-right: 0; } .information-facts div { grid-template-columns: 7rem minmax(0, 1fr); } }

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { AnimeActions } from "@/components/AnimeActions";
 import { AnimeCast } from "@/components/AnimeCast";
 import { AnimeRelations } from "@/components/AnimeRelations";
+import { AnimeInformation } from "@/components/AnimeInformation";
 import { AskAnime } from "@/components/AskAnime";
 import { Reviews } from "@/components/Reviews";
 import { WatchLinks } from "@/components/WatchLinks";
@@ -62,8 +63,8 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
     </section>
-    <nav className="title-section-nav" aria-label="Title page sections"><a href="#overview">Overview</a><a href="#cast">Cast</a><a href="#related">Related</a><a href="#watch">Where to watch</a><a href="#ask">Ask Anime Index</a><a href="#reviews">Reviews</a></nav>
-    <div className="title-content"><AnimeCast cast={anime.cast ?? []} studios={anime.studios ?? []} /><AnimeRelations relations={anime.relations ?? []} trailer={anime.trailer} /><WatchLinks links={anime.watchLinks ?? []} officialLinks={anime.officialLinks ?? []} /><AskAnime mediaId={mediaId} anime={anime} /><Reviews mediaId={mediaId} title={anime.title} />{anime.mediaCredits && anime.mediaCredits.length > 0 && <section className="source-credits"><span className="kicker">MEDIA CREDITS</span><h2>Reusable artwork sources</h2><div>{anime.mediaCredits.map((credit) => <a href={credit.sourceUrl} target="_blank" rel="noreferrer" key={credit.sourceUrl}><strong>{credit.creator}</strong><span>{credit.license}</span></a>)}</div></section>}</div>
+    <nav className="title-section-nav" aria-label="Title page sections"><a href="#overview">Overview</a><a href="#story">Story</a><a href="#cast">Cast</a><a href="#details">Details</a><a href="#related">Related</a><a href="#watch">Where to watch</a><a href="#ask">Ask Anime Index</a><a href="#reviews">Reviews</a></nav>
+    <div className="title-content"><AnimeInformation anime={anime} /><AnimeCast cast={anime.cast ?? []} studios={anime.studios ?? []} /><AnimeRelations relations={anime.relations ?? []} trailer={anime.trailer} /><WatchLinks links={anime.watchLinks ?? []} officialLinks={anime.officialLinks ?? []} /><AskAnime mediaId={mediaId} anime={anime} /><Reviews mediaId={mediaId} title={anime.title} />{anime.mediaCredits && anime.mediaCredits.length > 0 && <section className="source-credits"><span className="kicker">MEDIA CREDITS</span><h2>Reusable artwork sources</h2><div>{anime.mediaCredits.map((credit) => <a href={credit.sourceUrl} target="_blank" rel="noreferrer" key={credit.sourceUrl}><strong>{credit.creator}</strong><span>{credit.license}</span></a>)}</div></section>}</div>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(graph).replace(/</g, "\\u003c") }} />
   </article>;
 }
