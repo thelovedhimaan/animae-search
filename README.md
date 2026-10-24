@@ -14,6 +14,8 @@ The preview currently runs over HTTP on a credit-backed EC2 deployment in `ap-so
 - Character search and profiles with anime appearances and Japanese voice-actor credits
 - Rich title pages with cast, Japanese voice actors, studios, official viewing links, personal actions, reviews, and a conversational catalogue assistant
 - Native accounts, optional Google OAuth, account export/deletion, likes, watch later, visit history, and watching/completed/paused/dropped states
+- Accessible route loaders, skeleton states, subtle page/card motion, and reduced-motion support
+- Search metadata, canonical URLs, dynamic sitemap, robots rules, title/character structured data, breadcrumbs, social preview images, and an editorial source page
 - Live AniList GraphQL adapter for discovery, filtered search, and title details
 - Redis-backed response caching with an in-process development fallback
 - Curated frontend fallback data when the API or upstream provider is unavailable
@@ -106,5 +108,6 @@ The next product milestone is the rest of the reliable discovery foundation: com
 - [Jenkins and AWS setup](./docs/JENKINS.md)
 - [Implementation learning guide](./docs/LEARNING_GUIDE.md)
 - [Delivery roadmap](./ROADMAP.md)
+- [Search visibility and indexing](./docs/SEARCH_VISIBILITY.md)
 
 See the [prioritized MVP backlog](./docs/MVP_BACKLOG.md) for the product-first delivery order and the [roadmap](./ROADMAP.md) for the gates before the HTTPS and production-infrastructure phase.

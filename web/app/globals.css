@@ -71,3 +71,41 @@ footer { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 2rem; align-i
 .account-divider::before, .account-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .google-signin { display: block; padding: .85rem; color: white; border: 1px solid var(--line); border-radius: .6rem; background: #0b0f17; font-weight: 850; text-align: center; text-decoration: none; }
 .google-signin:hover { border-color: var(--lime); }
+
+/* Route loading and motion */
+.page-enter { animation: page-in .38s cubic-bezier(.2,.7,.2,1) both; }
+.route-loader { width: min(86rem, calc(100% - 2rem)); min-height: 72vh; margin: 0 auto; padding: clamp(3rem, 7vw, 7rem) 0; }
+.loader-heading { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+.loader-heading h1 { margin: .35rem 0 0; font: 750 clamp(2rem, 5vw, 4.5rem)/.95 var(--font-display); letter-spacing: -.05em; }
+.loader-mark { display: grid; width: 3.5rem; aspect-ratio: 1; place-items: center; color: #080b12; background: var(--lime); font-weight: 950; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); animation: loader-pulse 1.2s ease-in-out infinite; }
+.loader-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.skeleton-card { display: grid; gap: .75rem; animation: skeleton-in .45s ease both; animation-delay: var(--delay); }
+.skeleton-card span { display: block; width: 100%; aspect-ratio: 2 / 3; border-radius: .9rem; background: linear-gradient(105deg, #141a25 20%, #232b38 40%, #141a25 60%); background-size: 220% 100%; animation: shimmer 1.35s linear infinite; }
+.skeleton-card i, .skeleton-card b { display: block; height: .75rem; border-radius: 99px; background: #202735; }
+.skeleton-card b { width: 62%; height: .55rem; }
+.anime-card, .character-card, .cast-grid a, .relation-grid > a { transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.anime-card:hover, .character-card:hover, .cast-grid a:hover, .relation-grid > a:hover { transform: translateY(-4px); border-color: rgba(214,255,75,.55); box-shadow: 0 1rem 2.2rem rgba(0,0,0,.25); }
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes loader-pulse { 50% { transform: scale(.9) rotate(4deg); filter: brightness(1.15); } }
+@keyframes shimmer { to { background-position-x: -220%; } }
+@keyframes skeleton-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (max-width: 850px) { .loader-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) {
+  .page-enter, .loader-mark, .skeleton-card, .skeleton-card span { animation: none !important; }
+  .anime-card, .character-card, .cast-grid a, .relation-grid > a { transition: none; }
+}
+
+/* About and editorial transparency */
+.about-page > h1 { max-width: 68rem; margin: .8rem 0 1.2rem; font: 750 clamp(3rem, 6vw, 6rem)/.92 var(--font-display); letter-spacing: -.06em; }
+.about-lead { max-width: 58rem; color: #c4ccd8; font-size: clamp(1rem, 2vw, 1.35rem); line-height: 1.65; }
+.about-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin-top: 3rem; }
+.about-grid article { padding: 1.3rem; border: 1px solid var(--line); border-radius: .85rem; background: var(--panel); }
+.about-grid h2 { margin: 0 0 .6rem; font: 700 1.15rem var(--font-display); }
+.about-grid p, .about-source p { margin: 0; color: var(--muted); line-height: 1.65; }
+.about-source { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-top: 1rem; padding: 2rem; border-radius: 1rem; color: #080b12; background: var(--lime); }
+.about-source .kicker, .about-source p { color: #273000; }
+.about-source h2 { margin: .45rem 0; font: 750 2rem var(--font-display); }
+.about-source nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+.about-source a { padding: .7rem .85rem; color: white; border-radius: .55rem; background: #080b12; font-size: .7rem; font-weight: 800; text-decoration: none; }
+@media (max-width: 850px) { .about-grid { grid-template-columns: 1fr 1fr; }.about-source { align-items: start; flex-direction: column; } }
+@media (max-width: 520px) { .about-grid { grid-template-columns: 1fr; } }

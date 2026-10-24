@@ -4,6 +4,9 @@ import { SearchFilters } from "@/components/SearchFilters";
 import { SearchForm } from "@/components/SearchForm";
 import { searchAnime } from "@/lib/api";
 import type { SearchFilters as Filters } from "@/lib/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Search anime", description: "Search and filter anime by title, genre, format, season, status and ranking.", robots: { index: false, follow: true } };
 
 const clean = (value: string | undefined) => value?.trim().toLowerCase() ?? "";
 

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { CharacterCard } from "@/components/CharacterCard";
 import { searchCharacters } from "@/lib/api";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Anime characters", description: "Explore anime character profiles, appearances, relationships and Japanese voice actors.", alternates: { canonical: "/characters" } };
 
 export default async function CharactersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
