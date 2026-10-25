@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { SafePortrait } from "@/components/SafePortrait";
+
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AnimeActions } from "@/components/AnimeActions";
@@ -50,7 +51,7 @@ export default async function AnimePage({ params }: { params: Promise<{ id: stri
     <section className="title-overview" id="overview">
       <div className="title-backdrop" style={{ backgroundImage: anime.bannerImage || artwork ? `linear-gradient(90deg, rgba(8,11,18,.96), rgba(8,11,18,.76), rgba(8,11,18,.93)), url(${anime.bannerImage || artwork})` : "radial-gradient(circle at 20% 30%, rgba(214,255,75,.14), transparent 34rem)" }} />
       <div className="title-shell">
-        <div><div className="title-poster">{artwork ? <Image src={artwork} alt={`${anime.title} editorial artwork`} fill priority sizes="(max-width: 720px) 44vw, 18rem" /> : <div className="poster-placeholder"><span>{anime.title.slice(0, 2).toUpperCase()}</span><small>WIKIDATA RECORD</small></div>}</div>{anime.imageAttribution && <a className="media-credit" href={anime.imageAttribution.sourceUrl} target="_blank" rel="noreferrer">Image: {anime.imageAttribution.creator} · {anime.imageAttribution.license}</a>}{editorial && <span className="media-credit">Original Anime Index editorial artwork</span>}</div>
+        <div><div className="title-poster">{artwork ? <SafePortrait fallback={anime.title.charAt(0)} src={artwork} alt={`${anime.title} editorial artwork`} priority sizes="(max-width: 720px) 44vw, 18rem" /> : <div className="poster-placeholder"><span>{anime.title.slice(0, 2).toUpperCase()}</span><small>WIKIDATA RECORD</small></div>}</div>{anime.imageAttribution && <a className="media-credit" href={anime.imageAttribution.sourceUrl} target="_blank" rel="noreferrer">Image: {anime.imageAttribution.creator} · {anime.imageAttribution.license}</a>}{editorial && <span className="media-credit">Original Anime Index editorial artwork</span>}</div>
         <div className="title-summary">
           <span className="kicker">{anime.format} · {anime.status}</span>
           <h1>{anime.title}</h1>

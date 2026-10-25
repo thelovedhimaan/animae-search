@@ -266,7 +266,7 @@ class WikimediaClient:
                 ext = info.get("extmetadata") or {}
                 filename = page.get("title", "").removeprefix("File:")
                 metadata[filename] = {
-                    "url": info.get("thumburl") or info.get("url") or "",
+                    "url": info.get("url") or info.get("thumburl") or "",
                     "creator": _plain((ext.get("Artist") or {}).get("value")) or "Wikimedia Commons contributor",
                     "credit": _plain((ext.get("Credit") or {}).get("value")),
                     "license": _plain((ext.get("LicenseShortName") or {}).get("value")) or _plain((ext.get("UsageTerms") or {}).get("value")),
@@ -345,6 +345,13 @@ class WikimediaClient:
                 if enrichment.get("youtubeVideoId"):
                     item["trailer"] = {"id": enrichment["youtubeVideoId"], "site": "youtube"}
                 self._enrich_cast_from_kitsu(item, enrichment["id"])
+        if include_detail:
+            relations = [relation for item in normalized for relation in item.get("relations", [])]
+            artwork = self._kitsu_artwork([relation["title"] for relation in relations if not relation.get("coverImage")])
+            for relation in relations:
+                image = artwork.get(relation["title"], {})
+                if not relation.get("coverImage") and image.get("poster"):
+                    relation["coverImage"] = image["poster"]
         return normalized
 
     def _enrich_cast_from_kitsu(self, anime: dict, kitsu_id: str) -> None:
@@ -676,6 +683,9 @@ class WikimediaClient:
             anime_title = (anime_labels.get("en") or anime_labels.get("ja") or {}).get("value", "Untitled")
             anime_file = _first_string(anime, "P18")
             result["appearances"].append({"id": _qid_number(anime_id), "slug": _slug(anime_title), "title": anime_title, "coverImage": related_media.get(anime_file, {}).get("url", ""), "role": "CHARACTER"})
+        artwork = self._kitsu_artwork([item["title"] for item in result["appearances"]])
+        for item in result["appearances"]:
+            item["coverImage"] = artwork.get(item["title"], {}).get("poster") or item["coverImage"]
         for actor_id in voice_ids:
             actor = related.get(actor_id)
             if not actor:
