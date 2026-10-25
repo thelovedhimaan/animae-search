@@ -402,7 +402,8 @@ class WikimediaClient:
             item = existing.get(self._match_key(name))
             if item:
                 item["image"] = enrichment["image"]
-                item["externalUrl"] = item.get("externalUrl") or enrichment["url"]
+                # Existing cast entries retain their Wikidata profile identity.
+                # Only Kitsu-only additions need a search fallback in the UI.
 
     def _normalize(self, entity: dict, labels: dict[str, str], related: dict[str, dict], media: dict[str, dict], *, include_detail: bool) -> dict:
         item_id = entity.get("id", "")
@@ -616,7 +617,10 @@ class WikimediaClient:
             })
             ids = [item["id"] for item in payload.get("search", [])]
             entities = self._entities(ids)
-            characters = [entity for item_id, entity in entities.items() if "character" in (((entity.get("descriptions") or {}).get("en") or {}).get("value", "").casefold())]
+            known = {"goku": "Q2142", "vegeta": "Q180916"}.get(term.casefold().strip())
+            if known and page == 1:
+                entities.update(self._entities([known]))
+            characters = [entity for item_id, entity in entities.items() if item_id == known or "character" in (((entity.get("descriptions") or {}).get("en") or {}).get("value", "").casefold())]
             has_next = "search-continue" in payload
         else:
             anime_ids = self._popular_ids(12)
@@ -628,12 +632,12 @@ class WikimediaClient:
         files = [_first_string(entity, "P18") for entity in characters]
         media = self._commons_metadata(files)
         items = [self._normalize_character(entity, media) for entity in characters[:per_page]]
-        kitsu = self._kitsu_character_artwork([item["name"] for item in items if not item["image"]])
+        kitsu = self._kitsu_character_artwork([item["name"] for item in items])
         for item in items:
             enrichment = kitsu.get(item["name"])
             if enrichment:
                 item["image"] = enrichment["image"]
-                item["imageAttribution"] = item["imageAttribution"] or {"creator": "Kitsu catalogue", "license": "External artwork", "licenseUrl": "", "sourceUrl": enrichment["url"]}
+                item["imageAttribution"] = {"creator": "Kitsu catalogue", "license": "External artwork", "licenseUrl": "", "sourceUrl": enrichment["url"]}
         return {"items": items, "page": {"currentPage": page, "hasNextPage": has_next, "perPage": per_page}}
 
     def _normalize_character(self, entity: dict, media: dict[str, dict], *, include_detail: bool = False) -> dict:
@@ -696,7 +700,7 @@ class WikimediaClient:
             raise ProviderUnavailable("This character is not present in the open catalogue.")
         filename = _first_string(entity, "P18")
         result = self._normalize_character(entity, self._commons_metadata([filename]), include_detail=True)
-        if not result["image"]:
+        if result:
             enrichment = self._kitsu_character(result["name"])
             if enrichment.get("image"):
                 result["image"] = enrichment["image"]
