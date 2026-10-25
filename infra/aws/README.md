@@ -56,6 +56,19 @@ sudo git pull --ff-only origin master
 sudo docker compose --profile https --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml up --build --detach
 ```
 
+After catalogue normalization changes, clear cached API records so related-title and
+character image updates become visible immediately:
+
+```bash
+sudo docker compose --env-file .env.aws -f docker-compose.yml -f docker-compose.aws.yml exec -T redis redis-cli FLUSHDB
+```
+
+This clears the disposable response cache, not PostgreSQL user data. Rebuilding the
+web container also replaces its cached catalogue responses. Verify the web health
+endpoint at `/healthz`, then check a title, its related posters, character search,
+character appearances, and voice-actor photos. Trailer embeds should disappear on
+player errors, including region restrictions reported by YouTube.
+
 Delete the stack before credits expire to stop instance, storage, and public IPv4 usage:
 
 ```bash

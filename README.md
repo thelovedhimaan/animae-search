@@ -11,13 +11,17 @@ The preview runs over HTTPS on a credit-backed EC2 deployment in `ap-south-1`. C
 - Responsive discovery homepage with trending, current-season, top-rated, and upcoming shelves
 - Shareable search URLs with title, genre, format, status, season, sort, and pagination controls
 - Keyboard-accessible, debounced title autocomplete
-- Character search and profiles with anime appearances and Japanese voice-actor credits
-- Rich title pages with cast, Japanese voice actors, studios, official viewing links, personal actions, reviews, and a conversational catalogue assistant
+- Character search and internal profiles with shared portraits, anime appearance posters, and voice-actor credits across languages
+- Rich title pages with full storyline, release dates, runtime, content rating, studios, genres, cast, related anime, personal actions, reviews, and a conversational catalogue assistant
+- Responsive YouTube trailer embeds that disappear when the player reports an error or cannot initialize; related titles remain visible
+- Kitsu poster enrichment for related titles and character appearances, with shared image error fallbacks across discovery, cast, profiles, actor photos, and saved lists
+- Separate Kitsu audience scores, rating/popularity ranks, library users, and favorites alongside Anime Index community ratings
+- Official website and viewing links when recorded; regional streaming availability is incomplete
 - Native accounts, optional Google OAuth, account export/deletion, likes, watch later, visit history, and watching/completed/paused/dropped states
 - Accessible route loaders, skeleton states, subtle page/card motion, and reduced-motion support
 - Search metadata, canonical URLs, dynamic sitemap, robots rules, title/character structured data, breadcrumbs, social preview images, and an editorial source page
 - Free Wikimedia catalogue adapter using CC0 Wikidata facts, attributed Wikipedia summaries, and per-file Commons licensing
-- Anime Index-owned community ratings and activity-based trending instead of copied external platform scores
+- Anime Index-owned community ratings and activity-based trending, displayed separately from attributed external audience scores
 - Redis-backed response caching with an in-process development fallback
 - Curated frontend fallback data when the API or upstream provider is unavailable
 - PostgreSQL models for normalized titles, external provider identities, characters, and official viewing availability
@@ -101,7 +105,7 @@ The repository root [`Jenkinsfile`](./Jenkinsfile) performs these checks inside 
 
 The current MVP is deployed through the [`anime-index-mvp`](./infra/aws/README.md) CloudFormation stack on one EC2 instance, with Caddy providing HTTPS. This keeps infrastructure cost and operational overhead low while product behavior is still changing quickly. A branded domain, managed data services, and the ECS promotion path remain later scaling steps.
 
-The next product milestone is the rest of the reliable discovery foundation: complete title and relationship data, character and studio pages, regional availability, autocomplete, and clearer loading and provider-degradation states. Accounts, community, and grounded AI build on that foundation.
+Accounts, community reviews, character profiles, autocomplete, and title-level AI conversations are implemented. Remaining product work includes broader catalogue coverage, studio pages, verified regional availability, stronger recommendation quality, and evaluation of AI relevance and spoiler safety. External media can still be unavailable or region restricted; image fallbacks and trailer error handling keep those failures contained.
 
 ## Product and architecture docs
 
